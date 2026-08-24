@@ -1,6 +1,6 @@
-const VERSION = '0.3.0';
-const SAVE_KEY = 'toyStoreTycoon.v0.3';
-const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
+const VERSION = '0.4.0';
+const SAVE_KEY = 'toyStoreTycoon.v0.4';
+const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
 
 const brands = {
   gearmorph:{name:'GearMorph',glyph:'🤖',grad:'linear-gradient(145deg,#12c2e9,#7b4dff 52%,#ff4f87)',category:'Transforming Mechs'},
@@ -79,6 +79,30 @@ const displayDefs={
 };
 const retailMonths=['July','August','September','October','November','December','January','February','March','April','May','June'];
 
+const staffDefs={
+  cashier:{name:'Cashiers',icon:'🧾',wage:145,hire:350,desc:'Serve checkout queues. More cashiers prevent abandoned baskets.'},
+  floor:{name:'Floor Staff',icon:'😊',wage:135,hire:300,desc:'Help shoppers, improve conversion and reduce shoplifting.'},
+  stock:{name:'Stockroom Crew',icon:'📦',wage:140,hire:325,desc:'Keep shelves full during busy trading days.'},
+  manager:{name:'Store Manager',icon:'📋',wage:230,hire:900,desc:'Boosts staff efficiency, satisfaction and store condition.'}
+};
+const customerTypes={
+  parent:{name:'Parents',icon:'👨‍👩‍👧',weight:30,price:.92,scarcity:.9,quality:1.18,basket:1.45},
+  kid:{name:'Kids',icon:'🧒',weight:22,price:.82,scarcity:1.0,quality:.95,basket:1.15},
+  collector:{name:'Collectors',icon:'💎',weight:14,price:1.25,scarcity:1.55,quality:1.08,basket:1.2},
+  bargain:{name:'Bargain Hunters',icon:'🏷️',weight:16,price:.62,scarcity:.75,quality:.9,basket:1.35},
+  gift:{name:'Gift Buyers',icon:'🎁',weight:12,price:.98,scarcity:1.0,quality:1.2,basket:1.7},
+  impulse:{name:'Impulse Shoppers',icon:'✨',weight:6,price:.9,scarcity:1.0,quality:.85,basket:2.0}
+};
+const facilityDefs={
+  checkout2:{name:'Second Checkout',icon:'🧾',cost:4200,desc:'Adds another register and raises queue capacity.'},
+  lighting:{name:'Premium Lighting',icon:'💡',cost:3100,desc:'Makes displays pop and improves shopper conversion.'},
+  collector:{name:'Collector Cabinet',icon:'💎',cost:4800,desc:'Boosts collector purchases and scarce-product appeal.'},
+  security:{name:'Security Cameras',icon:'📹',cost:3600,desc:'Cuts shoplifting losses significantly.'},
+  giftwrap:{name:'Gift-Wrapping Station',icon:'🎁',cost:2900,desc:'Adds paid gift wrap and lifts gift-buyer satisfaction.'},
+  demozone:{name:'Toy Demo Zone',icon:'🎮',cost:5200,desc:'Kids linger longer and impulse purchases increase.'},
+  biggerfloor:{name:'Expanded Shop Floor',icon:'🏬',cost:8500,desc:'Raises traffic ceiling and gives the store a flagship feel.'}
+};
+
 function freshState(){
   const inventory={};
   const starting=['P001','P007','P013','P019','P025','P031','P037','P043'];
@@ -104,6 +128,17 @@ function freshState(){
 }
 
 let state = loadState();
+// v0.4 bootstrap defaults must exist before the first render, including when
+// a v0.3 save is loaded before the deeper migration layer executes below.
+state.staff=state.staff||{cashier:1,floor:1,stock:1,manager:0};
+state.facilities=state.facilities||{};
+state.openHours=state.openHours||8;
+state.storeCondition=Number.isFinite(state.storeCondition)?state.storeCondition:92;
+state.satisfaction=Number.isFinite(state.satisfaction)?state.satisfaction:78;
+state.shrinkageTotal=state.shrinkageTotal||0;
+state.giftWrapRevenue=state.giftWrapRevenue||0;
+state.lastOps=state.lastOps||{queueLost:0,shrinkage:0,wages:0,avgBasket:0,conversion:0,stockouts:0,persona:{},served:0,items:0,giftWrap:0};
+Object.entries(state.inventory||{}).forEach(([id,inv])=>{ if(!Number.isFinite(inv.shelfQty)) inv.shelfQty=Math.min(inv.qty,7); });
 let currentFilter='all';
 let sheetQty=1;
 
@@ -822,3 +857,141 @@ function endDay(){
 }
 
 function inventoryValue(){ return Object.entries(state.inventory).reduce((a,[id,x])=>a+x.qty*(x.avgCost||getProduct(id).wholesale),0); }
+
+/* ==========================================================================
+   v0.4 — Store Operations + Customer Experience
+   Staff, queues, shop-floor stock, customer archetypes, baskets, satisfaction,
+   shrinkage, maintenance and visible facilities.
+   ========================================================================== */
+function ensureV04State(s){
+  s.staff=s.staff||{cashier:1,floor:1,stock:1,manager:0};
+  Object.keys(staffDefs).forEach(k=>{ if(!Number.isFinite(s.staff[k])) s.staff[k]=k==='manager'?0:1; });
+  s.facilities=s.facilities||{}; s.openHours=s.openHours||8; s.storeCondition=Number.isFinite(s.storeCondition)?s.storeCondition:92;
+  s.satisfaction=Number.isFinite(s.satisfaction)?s.satisfaction:78; s.shrinkageTotal=s.shrinkageTotal||0; s.giftWrapRevenue=s.giftWrapRevenue||0;
+  s.lastOps=s.lastOps||{queueLost:0,shrinkage:0,wages:0,avgBasket:0,conversion:0,stockouts:0,persona:{}};
+  Object.entries(s.inventory||{}).forEach(([id,inv])=>{ const p=getProduct(id); if(!p)return; if(!Number.isFinite(inv.shelfQty)) inv.shelfQty=Math.min(inv.qty,shelfCapacityFor(id)); });
+  return s;
+}
+const _v03MigrateState=migrateState;
+migrateState=function(s){ return ensureV04State(_v03MigrateState(s)); };
+const _v03FreshState=freshState;
+freshState=function(){ return ensureV04State(_v03FreshState()); };
+state=ensureV04State(state);
+function shelfCapacityFor(id){
+  const place=state?.placements?.[id]||'main';
+  return place==='window'?8:place==='feature'?10:place==='back'?5:7;
+}
+function staffEfficiency(){ return 1+(state.staff.manager||0)*.12; }
+function checkoutLanes(){ return 1+(state.facilities.checkout2?1:0); }
+function checkoutCapacity(){ return Math.round(checkoutLanes()*Math.max(1,state.staff.cashier||0)*(34+(state.facilities.lighting?2:0))*staffEfficiency()*(state.openHours/8)); }
+function stockerCapacity(){ return Math.round((state.staff.stock||0)*42*staffEfficiency()); }
+function payrollCost(){ return Object.entries(staffDefs).reduce((a,[k,d])=>a+(state.staff[k]||0)*d.wage*(state.openHours/8),0); }
+function trafficCeiling(){ return state.facilities.biggerfloor?190:135; }
+function customerTypePick(){
+  const entries=Object.entries(customerTypes), total=entries.reduce((a,[,x])=>a+x.weight,0); let roll=Math.random()*total;
+  for(const [k,x] of entries){ roll-=x.weight; if(roll<=0)return k; } return 'parent';
+}
+function operatingHealth(){
+  const staffNeed=Math.max(1,(state.customersToday||60)/55), floorCover=(state.staff.floor||0)/staffNeed;
+  return clamp((state.storeCondition*.38)+(state.satisfaction*.38)+(state.rating/5*100*.24)+Math.min(8,floorCover*4),0,100);
+}
+function facilityBadges(){
+  return Object.entries(state.facilities).filter(([,v])=>v).map(([id])=>`<span>${facilityDefs[id]?.icon||'✓'} ${facilityDefs[id]?.name||id}</span>`).join('');
+}
+function renderStoreWorld(owned,chatter,hottest){
+  const shelf=owned.slice(0,6), fallback=products.filter(p=>p.launchDay<=state.day).slice(0,6), stock=shelf.length?shelf:fallback;
+  const shopperCount=clamp(Math.round((state.lastOps?.served||state.customersToday||48)/22),3,7);
+  const shoppers=Array.from({length:shopperCount},(_,i)=>{ const bubble=i<2&&chatter[i]?`<div class="shopper-bubble">${chatter[i].text}</div>`:''; return `<div class="shopper shopper-${i+1}">${bubble}<i class="shopper-head"></i><i class="shopper-body"></i><i class="shopper-arm left"></i><i class="shopper-arm right"></i><i class="shopper-leg left"></i><i class="shopper-leg right"></i></div>`; }).join('');
+  const queueDots=Math.min(5,Math.max(1,Math.round((state.lastOps?.queueLost||0)/5)+1));
+  return `<div class="store-world ${state.facilities.lighting?'facility-lighting':''} ${state.facilities.biggerfloor?'facility-expanded':''}">
+    <div class="store-ceiling"><i></i><i></i><i></i>${state.facilities.security?'<b class="security-camera">📹</b>':''}</div>
+    <div class="store-back-wall"><div class="store-logo-sign"><span>TOY</span><b>STORE</b><small>TYCOON</small></div><div class="launch-poster" style="${brandStyle(hottest)}" onclick="openBuySheet('${hottest.id}')"><span>HOT DROP</span>${packageArt(hottest,true)}<strong>${hottest.name}</strong></div><div class="service-sign">⭐ ${state.rating.toFixed(1)}<small>${Math.round(state.satisfaction)}% HAPPY</small></div></div>
+    <div class="store-floor">
+      <div class="shelf-wall shelf-left">${stock.slice(0,3).map(p=>{const inv=state.inventory[p.id],q=inv?.shelfQty||0;return `<div class="shelf-product ${q<=1?'shelf-empty':''}" style="${brandStyle(p)}" onclick="${inv?`openPriceSheet('${p.id}')`:`openBuySheet('${p.id}')`}">${q?packageArt(p,true):'<div class="empty-hook">SOLD<br>OUT</div>'}<span>${q} shelf</span></div>`}).join('')}<div class="shelf-plank"></div></div>
+      <div class="shelf-wall shelf-right">${stock.slice(3,6).map(p=>{const inv=state.inventory[p.id],q=inv?.shelfQty||0;return `<div class="shelf-product ${q<=1?'shelf-empty':''}" style="${brandStyle(p)}" onclick="${inv?`openPriceSheet('${p.id}')`:`openBuySheet('${p.id}')`}">${q?packageArt(p,true):'<div class="empty-hook">SOLD<br>OUT</div>'}<span>${q} shelf</span></div>`}).join('')}<div class="shelf-plank"></div></div>
+      ${state.facilities.collector?'<div class="collector-cabinet">💎<small>COLLECTORS</small></div>':''}
+      ${state.facilities.demozone?'<div class="demo-zone">🎮<small>TRY ME!</small></div>':''}
+      ${state.facilities.giftwrap?'<div class="gift-wrap-station">🎁<small>GIFT WRAP</small></div>':''}
+      <div class="checkout ${checkoutLanes()>1?'checkout-double':''}"><div class="register">▰</div>${checkoutLanes()>1?'<div class="register second">▰</div>':''}<div class="counter-sign">CHECKOUT</div><div class="shopping-bag">T</div>${Array.from({length:queueDots},(_,i)=>`<i class="queue-dot q${i}"></i>`).join('')}</div>
+      <div class="delivery-cart"><div>📦</div><span>${inventoryUsed()} total</span></div>${shoppers}
+    </div><div class="store-glow"></div></div>`;
+}
+function operationsPanel(){
+  const o=state.lastOps||{}, wages=payrollCost(), cond=Math.round(state.storeCondition), sat=Math.round(state.satisfaction);
+  return `<section class="section"><div class="section-head"><div><h2>🏬 Store Operations</h2><p>The floor now affects what actually reaches the till.</p></div><button onclick="switchTab('empire')">Manage</button></div>
+  <div class="ops-grid"><div class="ops-card"><span>😊 SATISFACTION</span><b>${sat}%</b><div class="mini-meter"><i style="width:${sat}%"></i></div></div><div class="ops-card"><span>🧹 CONDITION</span><b>${cond}%</b><div class="mini-meter"><i style="width:${cond}%"></i></div></div><div class="ops-card"><span>🧾 CHECKOUT</span><b>${checkoutCapacity()}</b><small>basket capacity/day</small></div><div class="ops-card"><span>👥 PAYROLL</span><b>${money(wages)}</b><small>per trading day</small></div></div>
+  ${o.queueLost?`<div class="operation-alert warn">⚠️ <b>${o.queueLost} baskets abandoned</b> because checkout queues were too long last day.</div>`:''}
+  ${o.stockouts?`<div class="operation-alert">📦 <b>${o.stockouts} shelf stockouts</b> restricted sales. Add stockroom crew or move more stock onto shelves.</div>`:''}
+  ${facilityBadges()?`<div class="facility-badges">${facilityBadges()}</div>`:''}</section>`;
+}
+function renderStore(){
+  const hottest=products.filter(p=>p.launchDay<=state.day+5).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0], owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).map(getProduct), front=[...owned].sort((a,b)=>(placementFactor(b.id)*state.market[b.id].hype)-(placementFactor(a.id)*state.market[a.id].hype)).slice(0,6), chatter=getChatter(), preorderCount=preorderUnits();
+  screen.innerHTML=`<section class="store-world-wrap">${renderStoreWorld(front,chatter,hottest)}<div class="store-command-card"><div><span class="kicker">${gameDate().label.toUpperCase()} · ${seasonName()}</span><h2>${state.lastSummary?'Your team is ready for another day.':'Your first store is ready to trade.'}</h2><p>${state.lastSummary?`${state.lastSummary.customers} visitors · ${money(state.lastSummary.sales)} sales last day.`:'Keep shelves full, queues moving and customers happy.'}</p></div><button class="primary-btn next-day-btn" onclick="endDay()">TRADE TODAY <b>→</b></button></div></section>
+  <section class="section">${calendarBanner()}</section>${operationsPanel()}
+  ${preorderCount?`<section class="section"><div class="preorder-strip" onclick="switchTab('market')"><span>🚚</span><div><b>${preorderCount} pre-order units committed</b><small>Cash is tied up · deliveries arrive on launch day.</small></div><strong>VIEW →</strong></div></section>`:''}
+  <section class="section"><div class="section-head"><div><h2>💬 Customer Intelligence</h2><p>Real shoppers are your earliest market research.</p></div></div>${chatter.map(c=>`<div class="chatter"><span>${c.avatar}</span><div><b>“${c.text}”</b><small>${c.note}</small></div></div>`).join('')}</section>
+  <section class="section"><div class="section-head"><div><h2>🔥 Hot on Your Shelves</h2><p>Tap a toy to adjust price and merchandising.</p></div><button onclick="switchTab('products')">All stock</button></div><div class="rail">${front.length?front.map(p=>miniProductCard(p,'inventory')).join(''):'<div class="empty">Order stock from the Market.</div>'}</div></section>`;
+}
+function staffCard(k){ const d=staffDefs[k], count=state.staff[k]||0; return `<div class="staff-card"><div><span class="staff-icon">${d.icon}</span><h3>${d.name} · ${count}</h3><p>${d.desc}</p><small>${money(d.wage)}/day each</small></div><div class="staff-controls"><button onclick="changeStaff('${k}',-1)" ${count<=(k==='manager'?0:1)?'disabled':''}>−</button><b>${count}</b><button onclick="changeStaff('${k}',1)">+</button></div></div>`; }
+function facilityCard(id){ const d=facilityDefs[id], owned=!!state.facilities[id]; return `<div class="upgrade-card"><div><h3>${d.icon} ${d.name}</h3><p>${d.desc}</p></div><button class="${owned?'secondary-btn':'primary-btn'}" ${owned?'disabled':''} onclick="buyFacility('${id}')">${owned?'INSTALLED':money(d.cost)}</button></div>`; }
+function renderEmpire(){
+  const net=state.cash+inventoryValue(), progress=clamp(net/50000*100,0,100);
+  screen.innerHTML=`<section class="empire-hero"><div class="kicker">YOUR COMPANY · STORE #1</div><h2>Run the floor like a retailer.</h2><p>Market instincts get stock through the door. Operations turn that stock into loyal customers and profit.</p><div class="divider"></div><div class="metrics"><div class="metric"><span>Net Worth</span><strong>${money(net)}</strong></div><div class="metric"><span>Satisfaction</span><strong>${Math.round(state.satisfaction)}%</strong></div><div class="metric"><span>Market Share</span><strong>${state.marketShare.toFixed(1)}%</strong></div></div><div class="field-label">Next milestone · $50,000</div><div class="progress"><span style="width:${progress}%"></span></div></section>
+  <section class="section"><div class="section-head"><div><h2>👥 Your Team</h2><p>Daily wages are deducted after every trading day.</p></div></div>${Object.keys(staffDefs).map(staffCard).join('')}</section>
+  <section class="section"><div class="section-head"><div><h2>🕒 Opening Hours</h2><p>Longer days create more traffic but also increase wages and wear.</p></div></div><div class="hours-picker">${[8,10,12].map(h=>`<button class="${state.openHours===h?'active':''}" onclick="setOpenHours(${h})">${h} HOURS</button>`).join('')}</div></section>
+  <section class="section"><div class="section-head"><div><h2>🏗️ Visible Store Improvements</h2><p>These upgrades alter both simulation performance and the shop scene.</p></div></div>${Object.keys(facilityDefs).map(facilityCard).join('')}</section>
+  <section class="section"><div class="section-head"><div><h2>🧹 Maintenance</h2><p>Condition ${Math.round(state.storeCondition)}% · poor condition reduces satisfaction and traffic.</p></div><button onclick="performMaintenance()">SERVICE · $450</button></div><div class="mini-meter large"><i style="width:${state.storeCondition}%"></i></div></section>
+  <section class="section"><div class="section-head"><div><h2>Existing Business Upgrades</h2></div></div>${upgrades.map(u=>upgradeCard(u)).join('')}</section>
+  <section class="section"><button class="secondary-btn wide" onclick="showLog()">VIEW EVENT HISTORY</button><button class="danger-btn wide" style="margin-top:9px" onclick="resetGame()">RESET LOCAL SAVE</button><p class="small-note">v${VERSION} · Save data is stored locally in this browser on this device.</p></section>`;
+}
+function changeStaff(k,delta){ const min=k==='manager'?0:1, next=clamp((state.staff[k]||0)+delta,min,5); if(next===state.staff[k])return; if(delta>0&&state.cash<staffDefs[k].hire)return toast('Not enough cash to hire'); if(delta>0){state.cash-=staffDefs[k].hire; state.eventLog.unshift(`Day ${state.day}: Hired an additional ${staffDefs[k].name.toLowerCase()}.`);} state.staff[k]=next; saveState(); renderEmpire(); toast(delta>0?'Staff member hired':'Staff member released'); }
+function setOpenHours(h){ state.openHours=h; saveState(); renderEmpire(); toast(`${h}-hour trading day selected`); }
+function buyFacility(id){ const d=facilityDefs[id]; if(state.facilities[id])return; if(state.cash<d.cost)return toast('Not enough cash'); state.cash-=d.cost; state.facilities[id]=true; if(id==='biggerfloor')state.reputation=clamp(state.reputation+4,0,100); state.eventLog.unshift(`Day ${state.day}: Installed ${d.name}.`); saveState(); renderEmpire(); toast(`${d.name} installed`); }
+function performMaintenance(){ if(state.cash<450)return toast('Not enough cash'); state.cash-=450; state.storeCondition=clamp(state.storeCondition+18,0,100); state.eventLog.unshift(`Day ${state.day}: Store maintenance completed.`); saveState(); renderEmpire(); toast('Store condition improved'); }
+function refillShelves(){
+  let capacity=stockerCapacity(); const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).sort((a,b)=>placementFactor(b)-placementFactor(a)); let stockouts=0;
+  owned.forEach(id=>{ const inv=state.inventory[id], cap=shelfCapacityFor(id); if(!Number.isFinite(inv.shelfQty))inv.shelfQty=Math.min(inv.qty,cap); const need=Math.max(0,Math.min(cap,inv.qty)-inv.shelfQty), add=Math.min(need,capacity); inv.shelfQty+=add; capacity-=add; if(inv.shelfQty<=0&&inv.qty>0)stockouts++; }); return stockouts;
+}
+function simulateCustomers(){
+  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0&&getProduct(id).launchDay<=state.day); owned.forEach(id=>{const inv=state.inventory[id];inv.soldToday=0;inv.lastProfit=0;if(!Number.isFinite(inv.shelfQty))inv.shelfQty=Math.min(inv.qty,shelfCapacityFor(id));});
+  refillShelves();
+  let traffic=Math.round(58*(1+state.upgrades.marketing*.06)*(0.78+state.rating/8)*seasonFactor()*(state.openHours/8)); traffic=Math.round(traffic*(.82+state.storeCondition/500)*(state.facilities.biggerfloor?1.13:1)); traffic+=Math.round((Math.random()-.5)*13); traffic=clamp(traffic,18,trafficCeiling());
+  const personaCounts={}; let baskets=[], stockouts=0, attemptedPurchases=0;
+  const weightedProducts=()=>owned.filter(id=>state.inventory[id].shelfQty>0);
+  for(let c=0;c<traffic;c++){
+    const typeKey=customerTypePick(), type=customerTypes[typeKey]; personaCounts[typeKey]=(personaCounts[typeKey]||0)+1; const available=weightedProducts(); if(!available.length){stockouts++;continue;}
+    const wants=1+(Math.random()<Math.min(.72,(type.basket-1)*.55)?1:0)+(Math.random()<Math.max(0,(type.basket-1)*.18)?1:0), basket=[];
+    for(let n=0;n<wants;n++){
+      const scored=available.map(id=>{const p=getProduct(id),inv=state.inventory[id],m=state.market[id],life=lifecycleFor(p),priceRatio=inv.price/p.rrp; let priceFit=priceRatio<=.85?1.3:priceRatio<=1?1.12:Math.max(.12,1-(priceRatio-1)*(2.35/type.price)); let score=(m.hype*.48+m.potential*.16+p.quality*.18*type.quality+p.scarcity*.12*type.scarcity)*priceFit*life.factor*placementFactor(id)*displayFactor(p); if(typeKey==='collector'&&state.facilities.collector)score*=1.24;if(typeKey==='kid'&&state.facilities.demozone)score*=1.18;if(typeKey==='impulse'&&state.facilities.lighting)score*=1.14; return {id,score:score*(.8+Math.random()*.4)};}).sort((a,b)=>b.score-a.score);
+      const pick=scored[0]; if(!pick||pick.score<26)continue; const inv=state.inventory[pick.id]; if(inv.shelfQty<=0)continue; attemptedPurchases++; inv.shelfQty--; inv.qty--; basket.push(pick.id);
+    }
+    if(basket.length)baskets.push({type:typeKey,items:basket});
+  }
+  const capacity=checkoutCapacity(), queueLost=Math.max(0,baskets.length-capacity); if(queueLost>0){ const lost=baskets.splice(capacity); lost.forEach(b=>b.items.forEach(id=>{const inv=state.inventory[id];inv.qty++;inv.shelfQty=Math.min(shelfCapacityFor(id),inv.shelfQty+1);})); }
+  state.todaySales=0;state.todayProfit=0;let itemCount=0,giftWrap=0;
+  baskets.forEach(b=>{b.items.forEach(id=>{const p=getProduct(id),inv=state.inventory[id];inv.soldToday++;inv.totalSold=(inv.totalSold||0)+1; const rev=inv.price, prof=rev-(inv.avgCost||p.wholesale);inv.lastProfit+=prof;state.todaySales+=rev;state.todayProfit+=prof;state.cash+=rev;state.totalRevenue+=rev;state.totalProfit+=prof;itemCount++;}); if(state.facilities.giftwrap&&(b.type==='gift'||Math.random()<.12)){giftWrap+=4.5;}});
+  if(giftWrap){state.todaySales+=giftWrap;state.todayProfit+=giftWrap;state.cash+=giftWrap;state.totalRevenue+=giftWrap;state.totalProfit+=giftWrap;state.giftWrapRevenue+=giftWrap;}
+  const floorCover=Math.min(1.25,(state.staff.floor||0)*staffEfficiency()/Math.max(1,traffic/60)), baseShrink=Math.round(itemCount*(.025+Math.random()*.025)*(state.facilities.security?.28:1)*(floorCover<.75?1.55:1)); let shrinkage=0;
+  if(baseShrink>0&&owned.length){ for(let i=0;i<baseShrink;i++){ const candidates=owned.filter(id=>state.inventory[id].qty>0); if(!candidates.length)break; const id=rand(candidates),inv=state.inventory[id];inv.qty--;inv.shelfQty=Math.min(inv.shelfQty,inv.qty);shrinkage+=(inv.avgCost||getProduct(id).wholesale); } state.cash-=shrinkage;state.todayProfit-=shrinkage;state.totalProfit-=shrinkage;state.shrinkageTotal+=shrinkage; }
+  const wages=payrollCost();state.cash-=wages;state.todayProfit-=wages;state.totalProfit-=wages;
+  const conversion=traffic?baskets.length/traffic:0, avgBasket=baskets.length?state.todaySales/baskets.length:0, queuePenalty=traffic?queueLost/traffic*42:0, conditionPenalty=Math.max(0,(78-state.storeCondition)*.18), serviceBoost=(state.staff.floor||0)*2.4*staffEfficiency()+(state.upgrades.service||0)*2+(state.staff.manager||0)*2.5+(state.facilities.giftwrap?1.5:0);
+  const targetSat=clamp(68+serviceBoost-queuePenalty-conditionPenalty-stockouts*.25,25,98);state.satisfaction=clamp(state.satisfaction*.72+targetSat*.28,20,99); state.rating=clamp(state.rating+(state.satisfaction>80?.018:state.satisfaction<55?-.035:-.004)+(Math.random()-.5)*.015,2.7,5);state.storeCondition=clamp(state.storeCondition-(1.2+state.openHours*.08)*(state.facilities.biggerfloor?1.08:1)+(state.staff.manager||0)*.35,20,100);state.marketShare=clamp(state.marketShare+(conversion>.48?.13:-.05)+(state.satisfaction>82?.07:0)+(Math.random()-.5)*.10,4,65);
+  state.customersToday=traffic;state.lastOps={queueLost,shrinkage:roundMoney(shrinkage),wages:roundMoney(wages),avgBasket:roundMoney(avgBasket),conversion:Math.round(conversion*100),stockouts,persona:personaCounts,served:baskets.length,items:itemCount,giftWrap:roundMoney(giftWrap)};
+  ['todaySales','todayProfit','cash','totalRevenue','totalProfit','shrinkageTotal','giftWrapRevenue'].forEach(k=>state[k]=roundMoney(state[k]||0));
+}
+function simulateRivals(){
+  const beforeShare=state.marketShare; const _stateSummary=state.lastOps; // retain v0.3 strategic rival simulation body through a compact equivalent
+  rivalTemplates.forEach(r=>{const s=state.rivals[r.id],inv=s.inventory||(s.inventory={}),ranked=products.filter(p=>p.launchDay<=state.day+4).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype),target=r.id==='collector'?(ranked.find(p=>p.scarcity>70)||ranked[0]):ranked[Math.min(ranked.length-1,Math.floor(Math.random()*Math.min(10,ranked.length)))]; if(!target)return; let rev=0;Object.entries(inv).forEach(([id,q])=>{if(q<=0)return;const p=getProduct(id),units=Math.min(q,Math.max(0,Math.round(state.market[id].hype/45*seasonFactor()*(.7+Math.random()*.5))));inv[id]-=units;rev+=units*(s.prices[id]||p.rrp);});s.cash+=rev;s.lastSales=roundMoney(rev);const pressure=state.marketShare>22||beforeShare>22;let want=4+Math.floor(Math.random()*8);if(r.id==='mega')want+=6;if(r.id==='trend'&&state.market[target.id].hype>72)want+=8;const take=Math.min(state.supplierStock[target.id]||0,want);if(take>0){state.supplierStock[target.id]-=take;inv[target.id]=(inv[target.id]||0)+take;s.cash-=take*target.wholesale;}if(r.id==='mega'&&pressure){s.prices[target.id]=roundMoney(target.rrp*(.74+Math.random()*.1));s.activity=`RETALIATION SALE: undercut ${target.name} to ${money(s.prices[target.id])} after your market share climbed.`;}else if(r.id==='collector'){s.prices[target.id]=roundMoney(target.rrp*(1.12+Math.random()*.22));s.activity=`Secured scarce ${target.name}; ${inv[target.id]||0} units now held.`;}else if(r.id==='trend'){s.activity=`Copied your hot-category strategy and loaded up on ${target.name}.`;}else{s.activity=`Promoted ${getBrand(target.brand).name} to protect family traffic.`;}if(weightedChance(r.rumor+(pressure?8:0))){const rumor=ranked[0];state.market[rumor.id].hype=clamp(state.market[rumor.id].hype-(3+Math.floor(Math.random()*6)),15,99);s.activity=`A negative rumour about ${rumor.name} is circulating locally. Source unverified.`;}s.share=clamp(s.share+(rev>2200?.12:-.02)+(Math.random()-.5)*.3,5,38);});
+}
+function buildDaySummary(completedDay){
+  const sold=Object.entries(state.inventory).map(([id,x])=>({p:getProduct(id),sold:x.soldToday||0,profit:x.lastProfit||0})).sort((a,b)=>b.sold-a.sold),best=sold[0],worst=[...sold].sort((a,b)=>a.sold-b.sold)[0],trend=[...products].sort((a,b)=>state.market[b.id].trend-state.market[a.id].trend)[0],o=state.lastOps||{};
+  return {day:completedDay,date:gameDate(completedDay).label,sales:state.todaySales,profit:state.todayProfit,customers:state.customersToday,best:best?.p?.name||'No sales',bestQty:best?.sold||0,worst:worst?.p?.name||'—',worstQty:worst?.sold||0,trend:trend?.name||'—',trendMove:state.market[trend?.id]?.trend||0,ops:o,satisfaction:Math.round(state.satisfaction)};
+}
+function showDaySummary(summary,event,deliveries=[]){
+  const o=summary.ops||{}; splash.innerHTML=`<div class="day-summary"><div class="day-summary-top"><span class="kicker">${summary.date.toUpperCase()} COMPLETE</span><h2>${summary.profit>=0?'The tills closed in the black.':'Operations dragged the day into the red.'}</h2><p>${summary.customers} visitors · ${summary.satisfaction}% satisfaction.</p></div><div class="day-summary-grid"><div><span>SALES</span><b>${money(summary.sales)}</b></div><div><span>NET DAY PROFIT</span><b class="${summary.profit>=0?'profit':'loss'}">${money(summary.profit)}</b></div><div><span>AVG BASKET</span><b>${money(o.avgBasket||0)}</b><small>${o.items||0} items sold</small></div><div><span>CONVERSION</span><b>${o.conversion||0}%</b><small>${o.served||0} baskets served</small></div></div><div class="summary-news"><div><span>👥 STAFF COST</span><b>-${money(o.wages||0)}</b><small>${state.openHours}-hour trading day</small></div>${o.queueLost?`<div class="major"><span>🧾 QUEUE LOSS</span><b>${o.queueLost} abandoned baskets</b><small>Add cashiers or a second checkout.</small></div>`:''}${o.shrinkage?`<div><span>🕵️ SHRINKAGE</span><b>-${money(o.shrinkage)}</b><small>Security and floor staff reduce losses.</small></div>`:''}${deliveries.length?`<div><span>🚚 DELIVERY</span><b>${deliveries.join(', ')}</b><small>Ready to merchandise.</small></div>`:''}${event?`<div class="major"><span>${event.icon} MARKET EVENT</span><b>${event.title}</b><small>${event.body}</small></div>`:''}</div><button class="primary-btn wide" onclick="closeSplash()">START ${gameDate(state.day).label.toUpperCase()} →</button></div>`;splash.classList.remove('hidden');
+}
+// Ensure launch deliveries receive usable shelf stock.
+const _v03ProcessPreorders=processPreorders;
+processPreorders=function(){const delivered=_v03ProcessPreorders();Object.entries(state.inventory).forEach(([id,inv])=>{if(!Number.isFinite(inv.shelfQty))inv.shelfQty=Math.min(inv.qty,shelfCapacityFor(id));});return delivered;};
+window.changeStaff=changeStaff;window.setOpenHours=setOpenHours;window.buyFacility=buyFacility;window.performMaintenance=performMaintenance;
+saveState();

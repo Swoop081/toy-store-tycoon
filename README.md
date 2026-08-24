@@ -1,135 +1,174 @@
-# Toy Store Tycoon v0.3.0 — Living Market + Retail Strategy
+# Toy Store Tycoon v0.4.0 — Store Operations + Customer Experience
 
-A premium, mobile-first toy-retail tycoon game designed for iPhone Safari/Home Screen and hosted entirely on GitHub Pages.
+**Current GitHub Pages baseline:** v0.4.0  
+**Created:** 24 August 2026  
+**Platform:** mobile-first HTML/CSS/JavaScript PWA for GitHub Pages
 
-## What changed in v0.3
+v0.4 builds directly on **v0.3 Living Market + Retail Strategy**. The living product market, lifecycle system, seasonal retail calendar, pre-orders, suppliers, merchandising, rivals, hype, pricing and original premium toy presentation remain intact. This update makes the **physical shop itself** a meaningful simulation.
 
-### Living product market
-- Products now move through visible lifecycle states: **Rumour → Announced → Launch → Peak → Stable → Decline → Clearance → Discontinued**.
-- Future product launches are spread across the retail calendar instead of all appearing in the opening week.
-- Every product has a **hidden underlying demand potential** separate from the visible hype score.
-- Launch reception can create genuine surprise hits and flops: reviews/word-of-mouth can sharply change hidden potential on launch.
-- Hype now tends to move toward the hidden market reality over time rather than behaving as pure random noise.
-- Product quality, scarcity, lifecycle, season, pricing, competitor price and merchandising all contribute to sales.
+## Major additions
 
-### Pre-orders and launch-day risk
-- Products can be pre-ordered before launch.
-- Pre-orders commit the **full cash cost immediately**, so capital is genuinely tied up before the player knows whether the toy will succeed.
-- Pre-orders reserve stockroom capacity and supplier allocation.
-- Committed inventory automatically arrives at the start of launch day.
-- Quick order buttons support 10 / 25 / 50 / maximum-unit buying decisions.
+### Staff and daily payroll
+The first store now has four staff groups:
 
-### Real merchandising
-- Inventory can be placed in **Front Window, Entrance Feature, Main Shelves or Back Corner**.
-- Front Window capacity: 3 products; **+45% visibility**.
-- Entrance Feature capacity: 4 products; **+25% visibility**.
-- Main Shelves: normal visibility.
-- Back Corner: **−32% visibility**.
-- Shelf placement directly changes simulated sales.
-- Product setup sheets now combine pricing and merchandising in one mobile-friendly screen.
+- **Cashiers** — increase checkout capacity and prevent completed baskets being abandoned in queues.
+- **Floor Staff** — improve service coverage and reduce shrinkage.
+- **Stockroom Crew** — refill shop-floor shelves from back-room inventory.
+- **Store Managers** — improve staff efficiency, satisfaction and store-condition resilience.
 
-### Supplier relationships
-Four named supplier businesses now power the market:
-- **PlayCo Distribution** — reliable mainstream wholesaler.
-- **Collector Direct** — rare, limited and premium stock.
-- **Budget Imports** — cheap stock and uneven availability.
-- **NorthStar Toys** — premium launches and exclusives.
+Hiring has an upfront cost and every employee has a daily wage. Longer trading hours proportionally increase payroll.
 
-Supplier relationships now:
-- improve as the player places orders,
-- reduce wholesale buying prices,
-- increase the player's maximum allocation on scarce products,
-- track lifetime spend and order history.
+### Opening hours
+Choose an **8, 10 or 12 hour trading day**. Longer hours create more potential traffic, but also cost more in wages and wear the store faster.
 
-### Proper inventory cost basis
-- Every inventory position records its real weighted-average acquisition cost.
-- Buying later at a cheaper supplier price does not retroactively change the profit on older stock.
-- Pre-order deliveries preserve the price actually committed at pre-order time.
-- Product margin and operating-profit calculations use actual inventory cost basis.
+### Real shop-floor stock
+Inventory is no longer treated as if every unit is instantly available to customers.
 
-### Franchise displays
-- Each of the 8 fictional franchises has a permanent branded store display upgrade.
-- Building a display increases that franchise's sales visibility by **18%**.
-- Displays are purchased from the Empire screen and remain part of the local save.
+Each owned product now tracks:
 
-### Smarter rival stores
-The four existing rivals now hold actual simulated inventory rather than acting only as price modifiers.
-- Rivals buy units from the same supplier availability pool as the player.
-- Rival purchases can exhaust stock before the player orders.
-- Rivals sell their inventory each day and track last-day revenue.
-- **MegaToy** buys heavily and starts price wars.
-- **Collector's Cave** targets scarce products and charges collector premiums.
-- **Trend Zone** aggressively chases the highest-hype stock.
-- **Family Toy Co.** uses steadier mainstream pricing.
-- Rival cards show their total units, biggest current inventory position and live strategy.
-- Rival rumours can temporarily damage visible market buzz.
+- total inventory
+- units physically on the shelf
+- stock remaining in the back room
+- merchandising position
 
-### Retail calendar and seasonality
-- One compressed retail year is **84 trading days**: 7 days per month.
-- The game begins in **July**, providing time to prepare for the Christmas rush.
-- Seasonal demand modifiers include:
-  - July school holidays,
-  - October holiday build-up,
-  - November gift season,
-  - December Christmas rush,
-  - January clearance slowdown,
-  - April Easter trade.
-- The current date and retail season now appear throughout the game.
+Front Window, Entrance Feature, Main Shelves and Back Corner still change visibility, but now also have different shelf capacities. Products can visibly sell out on the shop floor while additional stock remains in the back room. Stockroom staff replenish shelves between and during trading cycles according to available labour capacity.
 
-### End-of-day presentation
-Every trading day now ends with a premium summary showing:
-- sales,
-- operating profit/loss,
-- customers,
-- best seller,
-- slowest seller,
-- strongest market momentum,
-- launch-day deliveries,
-- major market events.
+### Customer archetypes
+Daily traffic is now made up of six different shopper groups:
 
-The completed day's figures remain visible instead of being cleared before the player can read them.
+- **Parents** — value quality and sensible pricing.
+- **Kids** — heavily influenced by hype and visual appeal.
+- **Collectors** — tolerate premiums for scarce products.
+- **Bargain Hunters** — strongly price sensitive.
+- **Gift Buyers** — favour quality and larger baskets.
+- **Impulse Shoppers** — especially responsive to presentation and store features.
 
-### Customer intelligence
-- Customer conversations now label themselves as stronger demand signals, price signals, social signals, collector signals or unverified rumours.
-- Chatter remains imperfect information rather than exposing the hidden demand calculation.
+Each group evaluates products differently instead of sharing one universal demand formula.
 
-## Premium presentation retained from v0.2
+### Multi-item baskets
+Customers can now buy more than one toy per visit. The daily results track:
 
-- Animated living store floor with shelves, checkout, deliveries and shoppers.
-- Physical original toy-packaging presentation rendered in HTML/CSS/JavaScript.
-- 8 original fictional toy franchises and 48 products.
-- Original toy silhouettes for robots, dolls, spacecraft, creatures, fantasy figures, cars, preschool toys and superheroes.
-- Rival storefront scenes, product packaging, full-screen events and mobile motion/press feedback.
-- Large iPhone touch targets, bottom navigation, safe-area handling and Home Screen/PWA mode.
+- completed baskets
+- items sold
+- average basket value
+- conversion rate
 
-## Save migration
+This makes cross-selling, displays, store quality and customer mix matter in addition to simple unit sales.
 
-v0.3 automatically imports compatible local saves from:
-- v0.2
-- v0.1
+### Checkout queues and abandoned baskets
+Completed baskets must make it through your checkout capacity. If customer demand overwhelms available cashiers/registers, shoppers abandon purchases and those items return to stock.
 
-New v0.3 fields such as suppliers, shelf placements, rival inventory, product hidden potential and inventory cost basis are added during migration without intentionally wiping existing cash, stock, prices or progression.
+A **Second Checkout** can be installed as a permanent visible upgrade.
 
-## Publish on GitHub Pages
+### Customer satisfaction
+A persistent satisfaction score now responds to:
 
-1. Create or open your GitHub repository, e.g. `toy-store-tycoon`.
-2. Upload **the contents of this folder** to the repository root, replacing the older build files.
-3. In GitHub: **Settings → Pages**.
-4. Under **Build and deployment**, choose **Deploy from a branch**.
-5. Select `main` and `/ (root)`, then Save.
-6. Open the Pages URL on iPhone and refresh after deployment.
-7. Safari: **Share → Add to Home Screen** for standalone app-like mode.
+- queue losses
+- floor-staff coverage
+- store condition
+- service upgrades
+- store manager coverage
+- gift wrapping
+- stock availability
 
-The v0.3 service worker uses a new cache version and removes older cached builds during activation. If an already-installed Home Screen copy briefly shows the old UI after deployment, close and reopen it once.
+Satisfaction feeds back into store rating and market-share performance.
 
-## IP / artwork direction
+### Store condition and maintenance
+The shop gradually wears down as it trades, especially during long opening hours. Poor condition eventually hurts customer experience and traffic.
 
-All included brands, product names, package layouts, fictional toy designs and storefront presentation are original game content. The build does not include licensed commercial toy brands, copied characters, copied logos or third-party product artwork.
+A **$450 maintenance service** restores condition.
 
-## Local-first architecture
+### Shoplifting / shrinkage
+Busy trading days can lose inventory to shrinkage. Losses are recorded at inventory cost and reduce daily profit.
 
-The entire game currently runs in static HTML/CSS/JavaScript. No paid server is required. Save data remains in the browser on the player's device. Online features such as cloud saves or shared events can be added later through a lightweight backend without replacing the GitHub Pages frontend.
+Shrinkage is reduced by:
 
-## Resetting during testing
+- stronger floor-staff coverage
+- **Security Cameras**
 
-Open **Empire → Reset Local Save**.
+Lifetime shrinkage is retained in the save.
+
+### Visible store facilities
+New permanent facilities change both simulation behaviour and the actual in-game store scene:
+
+- **Second Checkout** — more queue capacity
+- **Premium Lighting** — stronger conversion / impulse appeal
+- **Collector Cabinet** — better collector performance
+- **Security Cameras** — substantially lower shrinkage
+- **Gift-Wrapping Station** — paid gift wrap and better gift-buyer satisfaction
+- **Toy Demo Zone** — stronger kid and impulse shopping
+- **Expanded Shop Floor** — raises traffic ceiling and visually expands the store
+
+Purchased facilities appear in the animated Store scene rather than existing only as numerical bonuses.
+
+### Rival retaliation
+Rivals continue to buy and sell real inventory from the shared supplier pool. They now also react more aggressively when your local market share grows. MegaToy can launch retaliation sales, Trend Zone can copy hot-category strategies, Collector's Cave protects scarce stock, and rumour activity becomes more aggressive under competitive pressure.
+
+### Expanded end-of-day report
+The trading-day results now include operations metrics alongside sales:
+
+- sales
+- net daily profit after payroll/shrinkage
+- average basket
+- conversion
+- baskets served
+- staff cost
+- queue abandonment
+- shrinkage
+- launch deliveries
+- market events
+- satisfaction
+
+## Existing v0.3 systems retained
+
+- 48 products across 8 original fictional toy franchises
+- premium self-contained physical toy packaging visuals
+- animated living store world
+- 84-day compressed retail calendar
+- Christmas, November gifting, January clearance, Easter and school-holiday effects
+- hidden product potential versus visible hype
+- product lifecycle states
+- surprise launch hits/flops
+- pre-orders and launch-day deliveries
+- weighted-average inventory cost accounting
+- supplier relationships and allocations
+- shelf merchandising positions
+- franchise display upgrades
+- real rival inventory and shared supplier stock depletion
+- pricing, price wars and rumours
+- persistent local saves and offline PWA support
+
+## Save compatibility
+
+v0.4 uses the save key:
+
+`toyStoreTycoon.v0.4`
+
+It automatically imports compatible local saves from:
+
+- `toyStoreTycoon.v0.3`
+- `toyStoreTycoon.v0.2`
+- `toyStoreTycoon.v0.1`
+
+New operations fields are added safely on migration, including staff, facilities, opening hours, shelf quantities, store condition and customer satisfaction.
+
+## GitHub Pages deployment
+
+1. Extract this ZIP.
+2. Upload the **contents inside** `Toy-Store-Tycoon-v0.4-Store-Operations-Customer-Experience/` to the root of the existing GitHub repository.
+3. Commit the replacement files to the branch used by GitHub Pages.
+4. GitHub Pages will serve the updated build automatically.
+5. On iPhone, reopen the Home Screen/PWA version. v0.4 uses a new service-worker cache name so the old v0.3 assets are removed during activation.
+
+If Safari temporarily displays an old build, close the Home Screen app completely and reopen it once after GitHub Pages finishes deploying.
+
+## Main files
+
+- `index.html` — app shell
+- `styles.css` — premium mobile UI + v0.4 operations visuals
+- `game.js` — full market, rival, store-operations and customer simulation
+- `manifest.json` — installable PWA metadata
+- `sw.js` — offline/cache support
+- `assets/icons/` — PWA icons
+
+No external backend is required for this build. The simulation and saves remain local to the player's device/browser.
