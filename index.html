@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#ff4f87" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Toy Tycoon" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>Toy Store Tycoon</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark">T</div>
+        <div>
+          <div class="eyebrow">PREMIUM TOY RETAIL SIM</div>
+          <h1>Toy Store Tycoon</h1>
+        </div>
+      </div>
+      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound">🔊</button>
+    </header>
+
+    <section class="stat-strip" aria-label="Store status">
+      <div class="stat"><span>Cash</span><strong id="cashStat">$25,000</strong></div>
+      <div class="stat"><span>Today</span><strong id="salesStat">$0</strong></div>
+      <div class="stat"><span>Rating</span><strong id="ratingStat">4.2 ★</strong></div>
+      <div class="stat"><span>Date</span><strong id="dayStat">Jul 1</strong></div>
+    </section>
+
+    <main id="screen" class="screen" tabindex="-1"></main>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <button data-tab="store" class="nav-btn active"><span>🏪</span><b>Store</b></button>
+      <button data-tab="market" class="nav-btn"><span>🛒</span><b>Market</b></button>
+      <button data-tab="products" class="nav-btn"><span>📦</span><b>Products</b></button>
+      <button data-tab="rivals" class="nav-btn"><span>⚔️</span><b>Rivals</b></button>
+      <button data-tab="empire" class="nav-btn"><span>👑</span><b>Empire</b></button>
+    </nav>
+  </div>
+
+  <div id="sheetBackdrop" class="sheet-backdrop hidden"></div>
+  <section id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="Details">
+    <div class="sheet-handle"></div>
+    <div id="sheetContent"></div>
+  </section>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+  <div id="eventSplash" class="event-splash hidden" role="dialog" aria-modal="true"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
