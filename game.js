@@ -1,6 +1,6 @@
-const VERSION = '0.7.0';
-const SAVE_KEY = 'toyStoreTycoon.v0.7';
-const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.6','toyStoreTycoon.v0.5.3','toyStoreTycoon.v0.5.2','toyStoreTycoon.v0.5.1','toyStoreTycoon.v0.5','toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
+const VERSION = '0.8.2';
+const SAVE_KEY = 'toyStoreTycoon.v0.8.2';
+const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.8.1','toyStoreTycoon.v0.8','toyStoreTycoon.v0.7','toyStoreTycoon.v0.6','toyStoreTycoon.v0.5.3','toyStoreTycoon.v0.5.2','toyStoreTycoon.v0.5.1','toyStoreTycoon.v0.5','toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
 
 const brands = {
   gearmorph:{name:'GearMorph',glyph:'🤖',grad:'linear-gradient(145deg,#12c2e9,#7b4dff 52%,#ff4f87)',category:'Transforming Robots & Vehicles'},
@@ -1642,3 +1642,63 @@ function renderProducts(){
   screen.innerHTML=`<section class="section"><div class="section-head"><div><h2>Your Toy Aisle</h2><p>Tap a product to change price or shelf position.</p></div></div><div class="merch-overview"><div><span>FRONT WINDOW</span><b>${placementCount('window')}/3</b></div><div><span>ENTRANCE</span><b>${placementCount('feature')}/4</b></div><div><span>STOCKROOM</span><b>${v04StockroomUnits()}</b></div></div><div class="restock-banner"><div><span>📦</span><div><b>${v04RestockCapacity()} units/day restock capacity</b><small>Stock in the back cannot sell until it reaches the shelf.</small></div></div><button onclick="manualRestock()">RESTOCK NOW</button></div>${owned.length?owned.map(p=>inventoryRow(p)).join(''):`<div class="empty"><div class="emoji">📦</div><h3>Your shelves are empty</h3><p>Order products from the Market.</p><button class="primary-btn" onclick="switchTab('market')">OPEN MARKET</button></div>`}</section>`;
 }
 setTimeout(()=>{if(state&&!state.v053VisualShown){state.v053VisualShown=true;state.v052ArtShown=true;state.v051VisualShown=true;state.v05WelcomeShown=true;saveState();showSplash('THE STORE JUST GOT BIGGER','v0.5.3 adds a redesigned store world with real customer and staff art, visible product facings, branded endcaps and a readability pass that makes the smallest game text significantly larger on iPhone.','🏬');}},350);
+
+
+/* ==========================================================================
+   v0.8.2 — Premium Shelf + Store Presentation
+   ========================================================================== */
+function v082FacingSlot(p,idx=0){
+  if(!p)return `<div class="v082-facing empty"><span>DISPLAY<br>SPACE</span></div>`;
+  const inv=state.inventory[p.id]||{}, place=shelfPlacements[state.placements[p.id]||'main'];
+  return `<button class="v082-facing slot-${idx%4}" onclick="openPriceSheet('${p.id}')"><div class="v082-facing-art">${packageArt(p,true)}</div><div class="v082-facing-copy"><span>${place.icon} ${place.name.toUpperCase()}</span><b>${p.name}</b><small>${inv.shelfQty||0} shelf · ${inv.qty||0} total</small></div></button>`;
+}
+function v082ShelfBay(side,items){
+  return `<div class="v082-shelf-bay ${side}"><div class="v082-shelf-head"><span>${side==='left'?'FEATURE WALL':'BEST SELLERS'}</span><b>${side==='left'?'Launch + licensed lines':'Core traffic drivers'}</b></div><div class="v082-facing-stack">${items.map((p,i)=>v082FacingSlot(p,i)).join('')}</div><div class="v082-shelf-base"></div></div>`;
+}
+function v082DestinationBrands(){
+  const display=Object.keys(state.displays||{}).filter(b=>state.displays[b]);
+  const owned=[...new Set(Object.keys(state.inventory||{}).filter(id=>(state.inventory[id]?.qty||0)>0).map(id=>getProduct(id).brand))];
+  owned.sort((a,b)=>(state.franchises[b]?.health||0)-(state.franchises[a]?.health||0));
+  return [...new Set([...display,...owned])].slice(0,4);
+}
+function v082DestinationCard(brand){
+  const b=brands[brand], f=state.franchises[brand], hottest=products.filter(p=>p.brand===brand).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0];
+  return `<button class="v082-destination-card" onclick="openFranchiseHub('${brand}')" style="--brand-grad:${b.grad};background-image:linear-gradient(180deg,rgba(8,7,13,.12),rgba(8,7,13,.84)),url('assets/heroes/${brand}.webp')"><div class="v082-destination-top"><img src="assets/brands/${brand}.svg" alt="${b.name}"><span>${Math.round(f.health)}/100 HEALTH</span></div><div class="v082-destination-copy"><b>${b.name}</b><small>${f.currentMedia}</small><div class="v082-destination-meta"><span>🔥 ${Math.round(f.collectorHeat)} collector heat</span><span>${hottest ? hottest.name : 'Explore line'}</span></div></div></button>`;
+}
+function v082LaunchShowcaseCard(p){
+  const m=state.market[p.id], meta=v05ProductMeta(p), inv=state.inventory[p.id]||{};
+  return `<button class="v082-launch-card" onclick="openBuySheet('${p.id}')"><div class="v082-launch-art" style="${brandStyle(p)}">${packageArt(p,true)}</div><div class="v082-launch-copy"><span>${getBrand(p.brand).name} · ${meta.edition}</span><b>${p.name}</b><small>${heat(m.hype)} ${hypeLabel(m.hype)} · ${state.supplierStock[p.id]||0} supplier units</small><div class="v082-launch-row"><strong>${money(effectiveWholesale(p))}</strong><em>${inv.qty?`${inv.qty} owned`:'New opportunity'}</em></div></div></button>`;
+}
+function renderStoreWorld(owned,chatter,hottest){
+  const tier=v053StoreTier(), front=[...owned].slice(0,8), cs=state.customerStats||v04DefaultCustomerStats();
+  const team=v04Team().slice(0,4), people=v04CustomerTypes().slice(0,5), displayBrands=v082DestinationBrands();
+  const left=front.slice(0,4), right=front.slice(4,8);
+  const showcaseBrand=displayBrands[0]||hottest.brand;
+  return `<div class="store-world v082-store-world tier-${tier}" style="background-image:url('assets/stores/${tier}.svg')">
+    <div class="v082-ceiling-glow"></div>
+    <div class="v082-store-title"><span>${tier==='starter'?'INDEPENDENT TOY SHOP':tier==='neighbourhood'?'NEIGHBOURHOOD TOY DESTINATION':tier==='premium'?'PREMIUM TOY STORE':'FLAGSHIP TOY EXPERIENCE'}</span><b>${Math.round(cs.satisfaction||78)}% HAPPY SHOPPERS</b></div>
+    <div class="v082-launch-banner" onclick="openBuySheet('${hottest.id}')"><div><span>FEATURED LAUNCH</span><img src="assets/brands/${hottest.brand}.svg" alt="${getBrand(hottest.brand).name}"><strong>${hottest.name}</strong><small>${v05ProductMeta(hottest).edition} · ${state.supplierStock[hottest.id]} supplier units</small></div><em>SHOP NOW →</em></div>
+    ${v082ShelfBay('left', left)}
+    <button class="v082-feature-island" onclick="openBuySheet('${hottest.id}')"><div class="v082-island-copy"><span>ENDCAP SPOTLIGHT</span><b>${getBrand(hottest.brand).name}</b><strong>${hottest.name}</strong><small>${state.franchises[hottest.brand].currentMedia}</small></div><div class="v082-island-pack">${packageArt(hottest,false)}</div></button>
+    ${v082ShelfBay('right', right)}
+    ${displayBrands.slice(0,2).map((b,i)=>`<button class="v082-mini-destination d${i}" onclick="openFranchiseHub('${b}')" style="background-image:linear-gradient(180deg,rgba(6,6,12,.08),rgba(6,6,12,.80)),url('assets/heroes/${b}.webp')"><img src="assets/brands/${b}.svg" alt="${brands[b].name}"><span>${i===0?'DESTINATION ZONE':'BRAND WALL'}</span></button>`).join('')}
+    <div class="v082-floor-strip"><span>WINDOW FOCUS</span><span>LAUNCH ISLAND</span><span>FANDOM DESTINATIONS</span></div>
+    <div class="v053-people">${people.map((t,i)=>`<div class="v053-person customer c${i}"><img src="${v053CustomerAsset(t.id,i)}" alt="${t.name}">${i===1&&chatter[0]?`<div class="v053-bubble">${chatter[0].text}</div>`:''}</div>`).join('')}${team.map((s,i)=>`<div class="v053-person staff s${i}"><img src="${v053StaffAsset(s.role)}" alt="${s.name}"><span>${s.name}</span></div>`).join('')}</div>
+    <div class="v082-badges">${state.operations.secondCheckout?'<span>🧾 SECOND CHECKOUT</span>':''}${state.operations.collectorCabinet?'<span>💎 COLLECTOR CABINET</span>':''}${state.operations.demoZone?'<span>🎮 DEMO ZONE</span>':''}${state.operations.giftWrap?'<span>🎁 GIFT WRAP</span>':''}${state.operations.biggerFloor?'<span>🏬 BIGGER FLOOR</span>':''}</div>
+  </div>`;
+}
+function renderStore(){
+  const hottest=products.filter(p=>v05LaunchDay(p)<=state.day+5&&lifecycleFor(p).key!=='discontinued').sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0]||products[0];
+  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).map(getProduct),front=[...owned].sort((a,b)=>(placementFactor(b.id)*state.market[b.id].hype)-(placementFactor(a.id)*state.market[a.id].hype)).slice(0,8),chatter=getChatter(),preorderCount=preorderUnits();
+  const destinationBrands=v082DestinationBrands();
+  const launches=products.filter(p=>lifecycleFor(p).key!=='discontinued').sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype).slice(0,3);
+  screen.innerHTML=`<section class="store-world-wrap v082-wrap">${renderStoreWorld(front,chatter,hottest)}<div class="store-command-card v082-command"><div><span class="kicker">${gameDate().label.toUpperCase()} · ${seasonName()}</span><h2>${state.lastSummary?'Merchandise the floor before doors open.':'Build a toy store worth wandering through.'}</h2><p>${state.lastSummary?`${state.lastSummary.customers} visitors · ${state.lastSummary.transactions||0} baskets · ${money(state.lastSummary.sales)} sales last day.`:'Shelf theatre, featured launches and branded destinations now shape the visual identity of your store.'}</p></div><button class="primary-btn next-day-btn" onclick="endDay()">OPEN FOR ${state.operations.hours} HOURS →</button></div></section>
+  <section class="section">${v04OperationsPanel()}</section>
+  <section class="section"><div class="section-head"><div><h2>🛍️ Store Destinations</h2><p>Turn your best brands into visible reasons for customers to explore more of the shop.</p></div></div><div class="v082-destination-grid">${destinationBrands.map(v082DestinationCard).join('')}</div></section>
+  <section class="section"><div class="section-head"><div><h2>🚀 Launch Showcase</h2><p>Premium banners and product-card framing make new drops easier to read at a glance.</p></div><button onclick="switchTab('market')">Market</button></div><div class="v082-launch-grid">${launches.map(v082LaunchShowcaseCard).join('')}</div></section>
+  ${preorderCount?`<section class="section"><div class="preorder-strip" onclick="switchTab('market')"><span>🚚</span><div><b>${preorderCount} pre-order units incoming</b><small>Tap to review launch stock that is already committed.</small></div><strong>VIEW →</strong></div></section>`:''}
+  <section class="section"><div class="section-head"><div><h2>Who’s Shopping?</h2><p>Different shoppers value price, hype, scarcity and service differently.</p></div></div>${v053CustomerMix()}</section>
+  <section class="section"><div class="section-head"><div><h2>Customer Buzz</h2><p>Read the floor for clues before buying your next shipment.</p></div></div>${chatter.slice(0,3).map((c,i)=>`<div class="chatter v053-chatter"><img class="v053-chat-avatar" src="${v053CustomerAsset(v04CustomerTypes()[i%6].id,i)}" alt=""><div><p>“${c.text}”</p><small>${c.note}</small></div></div>`).join('')}</section>
+  <section class="section"><div class="grid2"><div class="action-card accent visual-action" onclick="switchTab('market')"><div class="action-orb">📦</div><h3>Buy & Pre-order</h3><p>${inventoryUsed()} owned · ${preorderCount} incoming.</p></div><div class="action-card visual-action" onclick="openCollectorVault()"><div class="action-orb">💎</div><h3>Collector Vault</h3><p>${v05VaultHeld()} special pieces held.</p></div><div class="action-card visual-action" onclick="openStaffSheet()"><div class="action-orb">👥</div><h3>Manage Team</h3><p>${v04Team().length} staff working this store.</p></div><div class="action-card visual-action" onclick="switchTab('rivals')"><div class="action-orb">⚔️</div><h3>Rival Watch</h3><p>See prices, stock and competitor moves.</p></div></div></section>`;
+}
+setTimeout(()=>{if(state&&!state.v082VisualShown){state.v082VisualShown=true;saveState();showSplash('PREMIUM STORE PRESENTATION','v0.8.2 upgrades the shop with stronger shelf bays, featured launch banners, destination-style franchise zones and cleaner product framing so the store feels more like a real toy retail floor.','🛍️');}},420);

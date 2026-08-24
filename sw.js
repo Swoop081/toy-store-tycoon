@@ -1,4 +1,4 @@
-const CACHE='toy-store-tycoon-v0.7.0';
+const CACHE='toy-store-tycoon-v0.8.2';
 const ASSETS=[
   './',
   './index.html',
@@ -6,6 +6,7 @@ const ASSETS=[
   './game.js',
   './v06.js',
   './v07.js',
+  './v08.js',
   './manifest.json',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
