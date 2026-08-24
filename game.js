@@ -1,6 +1,6 @@
-const VERSION = '0.5.0';
-const SAVE_KEY = 'toyStoreTycoon.v0.5';
-const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
+const VERSION = '0.5.1';
+const SAVE_KEY = 'toyStoreTycoon.v0.5.1';
+const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.5','toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
 
 const brands = {
   gearmorph:{name:'GearMorph',glyph:'🤖',grad:'linear-gradient(145deg,#12c2e9,#7b4dff 52%,#ff4f87)',category:'Transforming Mechs'},
@@ -173,13 +173,120 @@ function toyModel(p){
   return `<div class="toy-model hero-figure variant-${n}"><i class="hero-head"></i><i class="hero-body"></i><i class="hero-cape"></i><i class="hero-arm left"></i><i class="hero-arm right"></i><i class="hero-leg left"></i><i class="hero-leg right"></i><b class="hero-emblem">U</b></div>`;
 }
 
+function packPalette(p){
+  const palettes={
+    gearmorph:[['#ff4b55','#143968','#68f4ff','#0b1327'],['#ff9f2f','#3a1a78','#62e9ff','#161126'],['#7aff7a','#26477a','#f7ec58','#071a28'],['#f74aff','#17366a','#50f8ff','#120c22']],
+    lumalife:[['#ff66ae','#8a57ff','#ffe05e','#fff5fb'],['#ff8c72','#ff4fb1','#74dcff','#fff6ee'],['#9b72ff','#ff78c5','#a6ffdd','#fff8ff'],['#ff5f8d','#ffb44e','#8ee6ff','#fff6f2']],
+    starward:[['#47d9ff','#3158ff','#ffda65','#07112d'],['#ff5d80','#465cff','#70f5ff','#080d25'],['#7dffdb','#254ba8','#ffd25f','#07152d'],['#b475ff','#2356ff','#55eaff','#080b21']],
+    pocketbeasts:[['#62dc77','#1fb6a1','#ffe15f','#f5fff2'],['#ff8f59','#42cf8f','#fff06b','#f7fff0'],['#68a7ff','#5ce0b7','#ffdc67','#f2fffb'],['#c475ff','#43d7a2','#ffe673','#fbf6ff']],
+    mythicforge:[['#8e58d8','#3b275d','#ff9a62','#171021'],['#547eea','#27335e','#9cf2ff','#0f1327'],['#cf5353','#44245f','#ffd16a','#1d1017'],['#58bca4','#33255b','#ffa86c','#101b1b']],
+    nitrostreet:[['#ff3c35','#15191f','#ffd34d','#08090d'],['#ff8a18','#252029','#68e8ff','#0b0c10'],['#46c9ff','#15253b','#ff506d','#080b10'],['#b6ff35','#1c2023','#ff5b39','#090b0c']],
+    littleworld:[['#59c9f2','#ffca59','#ff7c9e','#fff9ea'],['#62dbb4','#ffbe4e','#7aa6ff','#f7fff8'],['#ffab68','#62cfe4','#8cd97a','#fff8ed'],['#ac8eff','#67dbd0','#ffd469','#faf6ff']],
+    ultraleague:[['#ef3f49','#2546b8','#ffd94f','#111534'],['#8a53ff','#ef3d71','#6ff4ff','#160d2d'],['#ff6a35','#273dc1','#ffe45d','#111535'],['#35c3ff','#5231aa','#ff527a','#0d1530']]
+  };
+  const arr=palettes[p.brand]; return arr[productNumber(p)%arr.length];
+}
+function brandLogoMarkup(brand){
+  if(brand==='gearmorph')return `<span class="pack-logo gear-logo"><b>GEAR</b><em>MORPH</em></span>`;
+  if(brand==='lumalife')return `<span class="pack-logo luma-logo"><b>Luma</b><em>Life</em></span>`;
+  if(brand==='starward')return `<span class="pack-logo star-logo"><b>STARWARD</b><em>FRONTIER</em></span>`;
+  if(brand==='pocketbeasts')return `<span class="pack-logo beast-logo"><b>POCKET</b><em>BEASTS</em></span>`;
+  if(brand==='mythicforge')return `<span class="pack-logo forge-logo"><b>MYTHIC</b><em>FORGE</em></span>`;
+  if(brand==='nitrostreet')return `<span class="pack-logo nitro-logo"><b>NITRO</b><em>STREET</em></span>`;
+  if(brand==='littleworld')return `<span class="pack-logo little-logo"><b>little</b><em>WORLD</em></span>`;
+  return `<span class="pack-logo ultra-logo"><b>ULTRA</b><em>LEAGUE</em></span>`;
+}
+function productFeature(p){
+  const name=p.name.toLowerCase();
+  if(p.brand==='gearmorph') return name.includes('duo')?'2 FIGURE TEAM':name.includes('hauler')||name.includes('convoy')?'VEHICLE ⇄ MECH':'TRANSFORMS • 12 STEPS';
+  if(p.brand==='lumalife') return name.includes('roadster')?'FASHION ROADSTER':name.includes('house')||name.includes('playset')?'DOLL + PLAYSET':'STYLE + STORY';
+  if(p.brand==='starward') return name.includes('playset')?'GALACTIC PLAYSET':name.includes('figure')||name.includes('captain')?'5.5” ACTION FIGURE':'FLEET SERIES';
+  if(p.brand==='pocketbeasts') return name.includes('egg')?'MYSTERY CREATURE INSIDE':name.includes('arena')?'BATTLE + DISPLAY':'COLLECT • TRAIN • DISCOVER';
+  if(p.brand==='mythicforge') return name.includes('castle')?'FORTRESS PLAYSET':name.includes('wyvern')?'WINGED BEAST SERIES':'LEGENDS AWAKEN';
+  if(p.brand==='nitrostreet') return name.includes('track')||name.includes('garage')?'STUNT CITY SYSTEM':name.includes('hauler')?'RACE TRANSPORTER':'DIE-CAST SPEED SERIES';
+  if(p.brand==='littleworld') return name.includes('bear')?'SOFT FRIEND COLLECTION':'PLAY • LEARN • IMAGINE';
+  return name.includes('tower')?'HERO HQ PLAYSET':name.includes('bike')?'VEHICLE + HERO':'POWER SERIES';
+}
+function packAge(p){ return p.brand==='littleworld'?'3+':p.brand==='nitrostreet'?'5+':p.brand==='lumalife'?'6+':p.brand==='pocketbeasts'?'6+':'8+'; }
+function toySvgWrap(body,p,view='0 0 160 140'){
+  return `<svg class="toy-svg" viewBox="${view}" aria-hidden="true" focusable="false">${body}</svg>`;
+}
+function toyVisual(p){
+  const [a,b,c,d]=packPalette(p), n=productNumber(p)%6, name=p.name.toLowerCase();
+  const shadow=`<ellipse cx="80" cy="126" rx="48" ry="8" fill="rgba(0,0,0,.16)"/>`;
+  if(p.brand==='gearmorph'){
+    const robot=(x=0,scale=1)=>`<g transform="translate(${x} 2) scale(${scale})"><path d="M47 50 L59 33 L101 33 L114 51 L108 81 L96 87 L92 119 L72 119 L68 88 L54 81 Z" fill="${b}" stroke="${d}" stroke-width="4"/><path d="M60 37 L69 20 L91 20 L101 37 L94 49 L66 49 Z" fill="${a}" stroke="${d}" stroke-width="4"/><rect x="70" y="29" width="20" height="6" rx="3" fill="${c}"/><path d="M62 53 L80 45 L99 53 L92 78 L69 78 Z" fill="${a}"/><circle cx="80" cy="61" r="9" fill="${c}" stroke="white" stroke-width="3"/><path d="M48 54 L30 67 L36 92 L49 84" fill="${a}" stroke="${d}" stroke-width="4"/><path d="M112 54 L130 67 L124 92 L109 84" fill="${a}" stroke="${d}" stroke-width="4"/><path d="M70 85 L61 118 L76 121 L82 91" fill="${b}" stroke="${d}" stroke-width="4"/><path d="M91 85 L99 118 L84 121 L79 91" fill="${b}" stroke="${d}" stroke-width="4"/>${name.includes('hauler')||name.includes('convoy')?`<circle cx="43" cy="86" r="9" fill="#151922" stroke="${c}" stroke-width="3"/><circle cx="116" cy="86" r="9" fill="#151922" stroke="${c}" stroke-width="3"/>`:''}${name.includes('talon')?`<path d="M53 51 L20 32 L34 70 Z" fill="${c}" stroke="${d}" stroke-width="3"/><path d="M106 51 L139 32 L126 70 Z" fill="${c}" stroke="${d}" stroke-width="3"/>`:''}${name.includes('saber')?`<path d="M125 68 L145 21" stroke="${c}" stroke-width="7" stroke-linecap="round"/><path d="M123 69 L145 21" stroke="white" stroke-width="2" stroke-linecap="round"/>`:''}</g>`;
+    return toySvgWrap(`${shadow}${name.includes('duo')?robot(-22,.78)+robot(42,.78):robot()}`,p);
+  }
+  if(p.brand==='lumalife'){
+    const doll=(x=0,accent=a)=>`<g transform="translate(${x} 0)"><circle cx="80" cy="39" r="17" fill="#eeb995"/><path d="M62 39 Q62 13 80 13 Q105 14 99 49 Q93 31 64 39" fill="${b}"/><path d="M72 58 Q80 51 89 58 L99 94 L63 94 Z" fill="${accent}"/><path d="M63 91 L98 91 L110 113 L52 113 Z" fill="${c}"/><path d="M69 112 L67 127 M92 112 L94 127" stroke="#d6997a" stroke-width="7" stroke-linecap="round"/><circle cx="74" cy="38" r="2" fill="#472f38"/><circle cx="87" cy="38" r="2" fill="#472f38"/><path d="M76 47 Q81 51 86 47" fill="none" stroke="#d15f72" stroke-width="2"/></g>`;
+    if(name.includes('roadster')) return toySvgWrap(`${shadow}<path d="M24 84 Q36 64 61 64 H106 Q127 66 139 86 L133 106 H26 Z" fill="${a}" stroke="${b}" stroke-width="5"/><path d="M57 65 L73 48 H105 L119 66" fill="#c8f6ff" stroke="${b}" stroke-width="4"/><circle cx="49" cy="106" r="13" fill="#29233a"/><circle cx="116" cy="106" r="13" fill="#29233a"/>${doll(12,c).replace('translate(12 0)','translate(18 -19) scale(.55)')}`,p);
+    if(name.includes('dreamhouse')) return toySvgWrap(`${shadow}<path d="M29 116 V49 L79 19 L132 50 V116 Z" fill="#fff0f8" stroke="${a}" stroke-width="6"/><path d="M20 51 L79 11 L140 51" fill="none" stroke="${b}" stroke-width="9"/><rect x="42" y="60" width="29" height="25" rx="4" fill="${c}"/><rect x="89" y="59" width="25" height="57" rx="4" fill="${a}"/><circle cx="108" cy="88" r="3" fill="#fff"/>${doll(-42).replace('translate(-42 0)','translate(-42 35) scale(.58)')}`,p);
+    if(name.includes('wardrobe')) return toySvgWrap(`${shadow}<rect x="27" y="31" width="63" height="89" rx="9" fill="${b}" stroke="${a}" stroke-width="5"/><rect x="34" y="39" width="49" height="73" rx="5" fill="#fff8fc"/><path d="M45 54 H74 M58 54 V99" stroke="${c}" stroke-width="4"/><path d="M47 66 L58 58 L70 66 L66 88 H50 Z" fill="${a}"/>${doll(44).replace('translate(44 0)','translate(42 13) scale(.76)')}`,p);
+    if(name.includes('twin')) return toySvgWrap(`${shadow}${doll(-30,a).replace('translate(-30 0)','translate(-30 5) scale(.82)')}${doll(32,c).replace('translate(32 0)','translate(32 5) scale(.82)')}`,p);
+    if(name.includes('beach')) return toySvgWrap(`${shadow}<path d="M29 104 H136" stroke="#e7c779" stroke-width="16"/><path d="M112 28 V101" stroke="${b}" stroke-width="5"/><path d="M81 43 Q112 7 145 43 Z" fill="${a}"/><rect x="102" y="87" width="26" height="17" rx="4" fill="${c}"/>${doll(-34).replace('translate(-34 0)','translate(-34 15) scale(.83)')}`,p);
+    return toySvgWrap(`${shadow}${doll()}`,p);
+  }
+  if(p.brand==='starward'){
+    if(name.includes('figure')||name.includes('captain')) return toySvgWrap(`${shadow}<g><circle cx="80" cy="29" r="15" fill="#d39b7c"/><path d="M65 44 H95 L104 91 L91 99 L90 124 H74 L71 99 L57 91 Z" fill="${b}" stroke="${d}" stroke-width="4"/><path d="M66 48 L80 61 L94 48 L99 71 L80 83 L61 71 Z" fill="${a}"/><path d="M58 55 L39 78 M102 55 L124 80" stroke="${c}" stroke-width="9" stroke-linecap="round"/><rect x="72" y="22" width="17" height="5" rx="2" fill="${c}"/>${name.includes('captain')?`<path d="M95 47 L117 39 L109 92 L99 86" fill="${a}" opacity=".8"/>`:''}</g>`,p);
+    if(name.includes('outpost')) return toySvgWrap(`${shadow}<path d="M35 112 V54 L55 39 H105 L125 55 V112" fill="${b}" stroke="${c}" stroke-width="5"/><rect x="67" y="24" width="27" height="73" rx="5" fill="${a}"/><circle cx="80" cy="46" r="10" fill="${c}"/><path d="M23 112 H138" stroke="${a}" stroke-width="10"/><path d="M19 52 L47 67 M140 52 L112 67" stroke="${c}" stroke-width="5"/>`,p);
+    const shipWide=name.includes('cruiser');
+    return toySvgWrap(`${shadow}<g transform="translate(0 ${shipWide?3:8})"><path d="M18 78 L66 55 L81 21 L96 55 L143 79 L106 89 L92 119 H69 L55 89 Z" fill="${b}" stroke="${d}" stroke-width="5"/><path d="M67 57 L81 31 L95 57 L104 78 L58 78 Z" fill="${a}"/><path d="M30 79 L9 100 L58 93" fill="${c}"/><path d="M132 79 L151 100 L104 93" fill="${c}"/><ellipse cx="81" cy="59" rx="11" ry="18" fill="#bdf6ff"/>${shipWide?`<rect x="42" y="67" width="78" height="16" rx="8" fill="${a}"/><circle cx="49" cy="84" r="5" fill="${c}"/><circle cx="112" cy="84" r="5" fill="${c}"/>`:''}${name.includes('speeder')?`<path d="M47 73 L26 54 M116 73 L139 53" stroke="${a}" stroke-width="8"/>`:''}</g>`,p);
+  }
+  if(p.brand==='pocketbeasts'){
+    if(name.includes('egg')) return toySvgWrap(`${shadow}<path d="M80 17 Q117 34 117 78 Q117 119 80 123 Q43 118 43 78 Q43 34 80 17 Z" fill="${a}" stroke="${b}" stroke-width="6"/><path d="M49 67 Q80 48 111 67" fill="none" stroke="${c}" stroke-width="7"/><circle cx="80" cy="74" r="14" fill="${c}"/><path d="M74 74 L80 65 L87 74 L80 83 Z" fill="${b}"/>`,p);
+    if(name.includes('arena')) return toySvgWrap(`${shadow}<ellipse cx="80" cy="101" rx="61" ry="25" fill="${b}" stroke="${a}" stroke-width="6"/><ellipse cx="80" cy="98" rx="42" ry="15" fill="${c}"/><path d="M34 87 L22 47 L46 59 M126 87 L139 47 L115 58" stroke="${a}" stroke-width="8"/><circle cx="64" cy="74" r="16" fill="${a}"/><circle cx="99" cy="76" r="15" fill="#ff885d"/>`,p);
+    const beast=(x=0,scale=1,col=a)=>`<g transform="translate(${x} 0) scale(${scale})"><ellipse cx="80" cy="83" rx="30" ry="32" fill="${col}" stroke="${b}" stroke-width="5"/><circle cx="80" cy="49" r="25" fill="${col}" stroke="${b}" stroke-width="5"/><path d="M61 33 L52 14 L72 28 M98 32 L108 13 L91 28" fill="${c}" stroke="${b}" stroke-width="4"/><circle cx="71" cy="47" r="5" fill="white"/><circle cx="89" cy="47" r="5" fill="white"/><circle cx="72" cy="48" r="2" fill="#17252c"/><circle cx="90" cy="48" r="2" fill="#17252c"/><path d="M74 61 Q80 66 87 60" fill="none" stroke="${b}" stroke-width="3"/><path d="M109 81 Q142 75 128 50" fill="none" stroke="${b}" stroke-width="9" stroke-linecap="round"/>${name.includes('moonhorn')?`<path d="M79 28 L86 5 L91 30" fill="${c}" stroke="${b}" stroke-width="3"/>`:''}${name.includes('drake')?`<path d="M53 70 L27 55 L43 84 M107 70 L134 55 L118 85" fill="${c}" stroke="${b}" stroke-width="4"/>`:''}</g>`;
+    if(name.includes('5-pack')) return toySvgWrap(`${shadow}${[-48,-24,0,24,48].map((x,i)=>beast(x,.42,[a,c,'#ff8a68','#6aa8ff','#d27aff'][i])).join('')}`,p);
+    return toySvgWrap(`${shadow}${beast()}`,p);
+  }
+  if(p.brand==='mythicforge'){
+    if(name.includes('castle')) return toySvgWrap(`${shadow}<path d="M25 120 V54 H48 V35 H65 V53 H96 V34 H114 V53 H136 V120 Z" fill="${b}" stroke="${d}" stroke-width="5"/><path d="M69 120 V83 Q80 67 94 83 V120" fill="#17111f"/><path d="M35 45 V24 M124 44 V21" stroke="${a}" stroke-width="9"/><path d="M35 25 L57 32 L35 40 M124 22 L103 29 L124 36" fill="${c}"/>`,p);
+    if(name.includes('wyvern')) return toySvgWrap(`${shadow}<path d="M75 42 Q93 27 108 45 L104 64 Q119 76 119 97 Q101 92 91 80 L81 118 L65 117 L69 82 Q47 97 28 92 Q35 69 57 60 L57 45 Z" fill="${a}" stroke="${d}" stroke-width="5"/><path d="M62 58 L29 37 L50 75 M99 58 L132 35 L111 76" fill="${c}" stroke="${b}" stroke-width="4"/><path d="M75 41 L82 17 L88 43" fill="${c}"/>`,p);
+    if(name.includes('siege')) return toySvgWrap(`${shadow}<rect x="35" y="66" width="89" height="44" rx="8" fill="${b}" stroke="${d}" stroke-width="5"/><circle cx="50" cy="111" r="15" fill="#372b38" stroke="${a}" stroke-width="5"/><circle cx="111" cy="111" r="15" fill="#372b38" stroke="${a}" stroke-width="5"/><path d="M33 73 L124 52 L141 59 L126 69 L34 87" fill="${a}"/><path d="M50 64 L61 39 H102 L114 61" fill="none" stroke="${c}" stroke-width="7"/>`,p);
+    const warrior=(x=0,scale=1)=>`<g transform="translate(${x} 0) scale(${scale})"><circle cx="80" cy="31" r="14" fill="#d49a78"/><path d="M63 45 L96 45 L104 88 L90 96 L89 122 H71 L69 96 L56 88 Z" fill="${b}" stroke="${d}" stroke-width="4"/><path d="M62 48 L80 58 L97 48 L93 74 L80 82 L66 74 Z" fill="${a}"/><circle cx="47" cy="69" r="17" fill="${c}" stroke="${d}" stroke-width="4"/><path d="M111 84 L132 31" stroke="${c}" stroke-width="6"/><path d="M127 28 L139 17" stroke="${a}" stroke-width="5"/>${name.includes('wolf')?`<path d="M67 24 L61 8 L73 18 M93 24 L100 8 L89 18" fill="${c}"/>`:''}</g>`;
+    if(name.includes('twin')) return toySvgWrap(`${shadow}${warrior(-34,.78)}${warrior(37,.78)}`,p);
+    return toySvgWrap(`${shadow}${warrior()}`,p);
+  }
+  if(p.brand==='nitrostreet'){
+    const car=(x=0,y=0,scale=1,col=a)=>`<g transform="translate(${x} ${y}) scale(${scale})"><path d="M30 84 Q39 61 65 57 H103 Q119 61 132 84 L128 101 H29 Z" fill="${col}" stroke="${d}" stroke-width="5"/><path d="M62 60 L75 45 H103 L115 63" fill="#bceeff" stroke="${b}" stroke-width="4"/><path d="M43 82 H120" stroke="${c}" stroke-width="5"/><circle cx="49" cy="102" r="12" fill="#17191c" stroke="${c}" stroke-width="3"/><circle cx="111" cy="102" r="12" fill="#17191c" stroke="${c}" stroke-width="3"/></g>`;
+    if(name.includes('loop')) return toySvgWrap(`${shadow}<circle cx="82" cy="67" r="47" fill="none" stroke="${a}" stroke-width="13"/><circle cx="82" cy="67" r="28" fill="none" stroke="${c}" stroke-width="4"/>${car(23,52,.55,b)}`,p);
+    if(name.includes('10-pack')) return toySvgWrap(`${shadow}${[0,1,2,3,4].map(i=>car(-46+(i%3)*46,4+Math.floor(i/3)*42,.42,[a,b,c,'#7d64ff','#65dc78'][i])).join('')}`,p);
+    if(name.includes('twin')) return toySvgWrap(`${shadow}${car(-26,-9,.75,a)}${car(36,35,.65,c)}`,p);
+    if(name.includes('hauler')) return toySvgWrap(`${shadow}<rect x="22" y="55" width="94" height="48" rx="8" fill="${b}" stroke="${d}" stroke-width="5"/><path d="M116 68 H139 L145 89 V103 H113 Z" fill="${a}" stroke="${d}" stroke-width="5"/><rect x="35" y="66" width="63" height="9" rx="4" fill="${c}"/><circle cx="48" cy="107" r="13" fill="#16181c"/><circle cx="116" cy="107" r="13" fill="#16181c"/>${car(-8,12,.42,c)}`,p);
+    if(name.includes('garage')) return toySvgWrap(`${shadow}<path d="M27 113 V43 H132 V113" fill="${b}" stroke="${d}" stroke-width="5"/><path d="M28 67 H131 M28 90 H131" stroke="${c}" stroke-width="7"/><path d="M41 43 V28 H118 V43" stroke="${a}" stroke-width="9"/>${car(-30,19,.42,a)}${car(17,42,.42,c)}`,p);
+    return toySvgWrap(`${shadow}${car()}`,p);
+  }
+  if(p.brand==='littleworld'){
+    if(name.includes('bus')) return toySvgWrap(`${shadow}<rect x="25" y="45" width="111" height="62" rx="15" fill="${a}" stroke="${b}" stroke-width="5"/><rect x="38" y="55" width="69" height="25" rx="7" fill="#dffaff"/><rect x="112" y="56" width="14" height="36" rx="5" fill="${c}"/><circle cx="48" cy="108" r="13" fill="#47545f"/><circle cx="114" cy="108" r="13" fill="#47545f"/><circle cx="61" cy="68" r="8" fill="#ffc39d"/><circle cx="85" cy="68" r="8" fill="#8b5d43"/>`,p);
+    if(name.includes('bear')) return toySvgWrap(`${shadow}<circle cx="80" cy="70" r="38" fill="#d8a56e"/><circle cx="55" cy="39" r="15" fill="#d8a56e"/><circle cx="105" cy="39" r="15" fill="#d8a56e"/><circle cx="69" cy="65" r="4" fill="#3a302c"/><circle cx="91" cy="65" r="4" fill="#3a302c"/><ellipse cx="80" cy="78" rx="13" ry="10" fill="#f1c99b"/><path d="M76 78 L80 82 L84 78" fill="none" stroke="#3b2f2a" stroke-width="3"/><path d="M48 98 Q80 124 112 98" fill="${c}"/>`,p);
+    if(name.includes('farm')) return toySvgWrap(`${shadow}<path d="M35 117 V61 L80 31 L125 61 V117 Z" fill="#f6f0d5" stroke="${a}" stroke-width="5"/><path d="M28 63 L80 26 L133 63" fill="none" stroke="#e8584c" stroke-width="11"/><rect x="67" y="81" width="27" height="36" fill="#db6c48"/><circle cx="44" cy="90" r="11" fill="#fff" stroke="${b}" stroke-width="4"/><circle cx="116" cy="90" r="11" fill="#f0d2ad" stroke="${b}" stroke-width="4"/>`,p);
+    if(name.includes('builder')) return toySvgWrap(`${shadow}<rect x="33" y="86" width="83" height="30" rx="7" fill="${c}" stroke="${b}" stroke-width="5"/><circle cx="50" cy="118" r="12" fill="#53616b"/><circle cx="103" cy="118" r="12" fill="#53616b"/><path d="M80 84 V36 H94 V82 M87 40 L128 58" stroke="${a}" stroke-width="9"/><path d="M128 58 L119 74" stroke="${b}" stroke-width="6"/>`,p);
+    if(name.includes('kitchen')) return toySvgWrap(`${shadow}<rect x="31" y="35" width="98" height="82" rx="8" fill="#fff7e4" stroke="${a}" stroke-width="5"/><rect x="42" y="49" width="33" height="26" rx="5" fill="${c}"/><circle cx="101" cy="63" r="13" fill="#c8e9f8"/><rect x="45" y="84" width="69" height="27" rx="5" fill="${b}"/><circle cx="57" cy="92" r="4" fill="${a}"/><circle cx="72" cy="92" r="4" fill="${a}"/>`,p);
+    if(name.includes('market')) return toySvgWrap(`${shadow}<path d="M33 119 V55 H126 V119" fill="#fff6df" stroke="${b}" stroke-width="5"/><path d="M25 55 H135 L125 34 H36 Z" fill="${a}"/><path d="M38 35 V55 M58 35 V55 M78 35 V55 M98 35 V55 M118 35 V55" stroke="#fff" stroke-width="7"/><rect x="48" y="76" width="62" height="12" rx="4" fill="${c}"/><circle cx="59" cy="73" r="7" fill="#ff6969"/><circle cx="81" cy="73" r="7" fill="#6fd47c"/><circle cx="103" cy="73" r="7" fill="#f2bd45"/>`,p);
+    return toySvgWrap(`${shadow}<circle cx="80" cy="68" r="35" fill="${a}"/><circle cx="61" cy="53" r="8" fill="white"/><circle cx="99" cy="53" r="8" fill="white"/><path d="M59 84 Q80 101 102 84" fill="none" stroke="${b}" stroke-width="6"/>`,p);
+  }
+  // Ultra League
+  if(name.includes('tower')) return toySvgWrap(`${shadow}<path d="M49 121 L59 37 L80 18 L102 38 L113 121 Z" fill="${b}" stroke="${d}" stroke-width="5"/><path d="M80 18 V119" stroke="${a}" stroke-width="8"/><path d="M56 64 H105 M53 91 H109" stroke="${c}" stroke-width="5"/><circle cx="80" cy="46" r="10" fill="${c}"/><path d="M73 46 L80 36 L88 46 L80 57 Z" fill="${a}"/>`,p);
+  if(name.includes('bike')) return toySvgWrap(`${shadow}<circle cx="48" cy="99" r="24" fill="none" stroke="${b}" stroke-width="8"/><circle cx="116" cy="99" r="24" fill="none" stroke="${b}" stroke-width="8"/><path d="M48 99 L72 66 L95 99 H48 L84 99 L107 68" fill="none" stroke="${a}" stroke-width="8"/><circle cx="84" cy="46" r="10" fill="#d49b7b"/><path d="M75 55 L96 56 L105 78 L82 83 L69 69 Z" fill="${c}"/>`,p);
+  const hero=(x=0,scale=1,col=a)=>`<g transform="translate(${x} 0) scale(${scale})"><circle cx="80" cy="28" r="14" fill="#d9a07f"/><path d="M64 42 H96 L104 84 L91 93 L89 122 H72 L70 94 L57 85 Z" fill="${col}" stroke="${d}" stroke-width="4"/><path d="M62 47 L80 58 L97 47 L92 74 L80 84 L67 74 Z" fill="${b}"/><path d="M59 49 L42 84 M101 49 L120 84" stroke="${col}" stroke-width="9" stroke-linecap="round"/><path d="M96 45 Q128 52 116 103 L99 88" fill="${b}" opacity=".9"/><path d="M75 58 L80 50 L86 58 L80 69 Z" fill="${c}"/></g>`;
+  if(name.includes('3-pack')) return toySvgWrap(`${shadow}${hero(-45,.62,a)}${hero(0,.72,b)}${hero(47,.62,c)}`,p);
+  return toySvgWrap(`${shadow}${hero()}`,p);
+}
 function packageArt(p,compact=false){
-  const b=getBrand(p.brand);
-  return `<div class="toy-package ${compact?'compact':''}">
-    <div class="pack-top"><span class="pack-brand">${brandWord(p)}</span><span class="pack-wave">${seriesLabel(p)}</span></div>
-    <div class="pack-window">${toyModel(p)}<span class="pack-spark one"></span><span class="pack-spark two"></span></div>
-    <div class="pack-bottom"><strong>${p.name}</strong><span>${b.category}</span></div>
-    <div class="pack-corner">${String(productNumber(p)).padStart(2,'0')}</div>
+  const meta=typeof v05ProductMeta==='function'?v05ProductMeta(p):null;
+  const [a,b,c,d]=packPalette(p);
+  const serial=String(productNumber(p)).padStart(3,'0');
+  const special=meta?.edition&&meta.edition!=='Mainline'?meta.edition.toUpperCase():'CORE COLLECTION';
+  return `<div class="toy-package premium-pack brand-${p.brand} ${compact?'compact':''}" style="${brandStyle(p)};--toy-a:${a};--toy-b:${b};--toy-c:${c};--toy-dark:${d}">
+    <div class="pack-cardback"></div>
+    <div class="pack-hanger"></div>
+    <div class="pack-header">${brandLogoMarkup(p.brand)}<span class="pack-series">${meta?`G${meta.generation} • W${meta.wave}`:seriesLabel(p)}</span></div>
+    <div class="pack-window"><div class="pack-backdrop"><span></span><span></span><span></span></div><div class="toy-render">${toyVisual(p)}</div><div class="plastic-glare"></div></div>
+    <div class="pack-feature">${productFeature(p)}</div>
+    <div class="pack-footer"><div><strong>${p.name}</strong><span>${special}</span></div><b class="pack-age">${packAge(p)}</b></div>
+    <div class="pack-number">#${serial}</div>
+    ${meta?.limited?`<div class="pack-limited">LIMITED</div>`:''}
   </div>`;
 }
 
@@ -1308,7 +1415,7 @@ function migrateState(s){
   s.customerStats={...v04DefaultCustomerStats(),...(s.customerStats||{})};
   const defaults=v05DefaultFranchises(); s.franchises=s.franchises||{};
   Object.keys(brands).forEach(id=>{ s.franchises[id]={...defaults[id],...(s.franchises[id]||{})}; s.franchises[id].history=Array.isArray(s.franchises[id].history)?s.franchises[id].history:defaults[id].history; });
-  s.collectorVault=Array.isArray(s.collectorVault)?s.collectorVault:[]; s.collectorStats={...v05DefaultCollectorStats(),...(s.collectorStats||{})}; s.releaseOverrides=s.releaseOverrides||{}; s.franchiseYearProcessed=s.franchiseYearProcessed||gameDate(s.day||1).year; s.v05WelcomeShown=!!s.v05WelcomeShown;
+  s.collectorVault=Array.isArray(s.collectorVault)?s.collectorVault:[]; s.collectorStats={...v05DefaultCollectorStats(),...(s.collectorStats||{})}; s.releaseOverrides=s.releaseOverrides||{}; s.franchiseYearProcessed=s.franchiseYearProcessed||gameDate(s.day||1).year; s.v05WelcomeShown=!!s.v05WelcomeShown; s.v051VisualShown=!!s.v051VisualShown;
   products.forEach((p,idx)=>{
     if(!s.market[p.id])s.market[p.id]={hype:p.baseDemand,trend:0,buzz:'steady'};
     if(!Number.isFinite(s.market[p.id].potential))s.market[p.id].potential=latentPotential(p);
@@ -1323,7 +1430,7 @@ function freshState(){
   starting.forEach((id,idx)=>{const p=getProduct(id),qty=8+(idx%4)*2;inventory[id]={qty,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:p.wholesale,shelfQty:Math.min(qty,idx<2?6:idx<4?7:8)};placements[id]=idx<2?'window':idx<4?'feature':'main';});
   const market={};products.forEach((p,idx)=>market[p.id]={hype:clamp(p.baseDemand+((idx*13)%19)-9,20,96),trend:((idx%5)-2),buzz:'steady',potential:latentPotential(p)});
   const rivals={};rivalTemplates.forEach((r,ri)=>{const prices={},rinv={};products.forEach((p,idx)=>{prices[p.id]=roundMoney(p.rrp*(r.pricing+((((idx+ri*2)%9)-4)/100)));if(idx%11===ri)rinv[p.id]=4+((idx+ri*3)%10);});rivals[r.id]={cash:70000+ri*18000,rep:r.rep,share:17+ri*2,prices,inventory:rinv,lastSales:0,pressure:0,activity:'Watching the market.'};});
-  return {version:VERSION,day:1,cash:25000,todaySales:0,todayProfit:0,rating:4.2,reputation:55,customersToday:0,totalRevenue:0,totalProfit:0,inventory,market,rivals,supplierStock:Object.fromEntries(products.map(p=>[p.id,p.supplierStock])),upgrades:{stockroom:0,marketing:0,service:0,analytics:0},marketShare:18,lastEvent:'Grand Opening',eventLog:['Day 1: Your independent toy shop opened.'],chatter:[],sound:true,tab:'store',tutorialShown:false,orderCount:0,preorders:{},placements,displays:{},suppliers:Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}])),lastSummary:null,operations:v04DefaultOperations(),staff:{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]},customerStats:v04DefaultCustomerStats(),franchises:v05DefaultFranchises(),collectorVault:[],collectorStats:v05DefaultCollectorStats(),releaseOverrides:{},franchiseYearProcessed:1,v05WelcomeShown:false};
+  return {version:VERSION,day:1,cash:25000,todaySales:0,todayProfit:0,rating:4.2,reputation:55,customersToday:0,totalRevenue:0,totalProfit:0,inventory,market,rivals,supplierStock:Object.fromEntries(products.map(p=>[p.id,p.supplierStock])),upgrades:{stockroom:0,marketing:0,service:0,analytics:0},marketShare:18,lastEvent:'Grand Opening',eventLog:['Day 1: Your independent toy shop opened.'],chatter:[],sound:true,tab:'store',tutorialShown:false,orderCount:0,preorders:{},placements,displays:{},suppliers:Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}])),lastSummary:null,operations:v04DefaultOperations(),staff:{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]},customerStats:v04DefaultCustomerStats(),franchises:v05DefaultFranchises(),collectorVault:[],collectorStats:v05DefaultCollectorStats(),releaseOverrides:{},franchiseYearProcessed:1,v05WelcomeShown:false,v051VisualShown:false};
 }
 function loadState(){
   try{for(const key of [SAVE_KEY,...LEGACY_SAVE_KEYS]){const raw=localStorage.getItem(key);if(!raw)continue;const s=JSON.parse(raw);if(s&&s.inventory&&s.market&&s.rivals){const m=migrateState(s);localStorage.setItem(SAVE_KEY,JSON.stringify(m));return m;}}}catch(e){}
@@ -1472,3 +1579,13 @@ window.openFranchiseHub=openFranchiseHub;window.openCollectorVault=openCollector
 setTimeout(()=>{
   if(state && !state.v05WelcomeShown){state.v05WelcomeShown=true;saveState();showSplash('THE TOY UNIVERSE IS ALIVE','Franchises now grow, stumble, reboot and become nostalgic. Supplier cartons can contain individually tracked chase variants — display them to attract collectors, hold them for future value or sell into the secondary market.','💎');}
 },700);
+
+
+/* v0.5.1 — Premium Toy Identity Overhaul welcome */
+setTimeout(()=>{
+  if(state && !state.v051VisualShown){
+    state.v051VisualShown=true;
+    saveState();
+    showSplash('THE TOY AISLE HAS BEEN REMASTERED','Every franchise now has its own packaging language and the products inside are drawn as actual toys — mechs, dolls, ships, creatures, castles, cars, preschool playsets and heroes — with product-specific forms, window boxes, blister packs, collector labels and shelf-ready branding.','🧸');
+  }
+},1200);
