@@ -1,16 +1,16 @@
-const VERSION = '0.5.1';
-const SAVE_KEY = 'toyStoreTycoon.v0.5.1';
-const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.5','toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
+const VERSION = '0.7.0';
+const SAVE_KEY = 'toyStoreTycoon.v0.7';
+const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.6','toyStoreTycoon.v0.5.3','toyStoreTycoon.v0.5.2','toyStoreTycoon.v0.5.1','toyStoreTycoon.v0.5','toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
 
 const brands = {
-  gearmorph:{name:'GearMorph',glyph:'🤖',grad:'linear-gradient(145deg,#12c2e9,#7b4dff 52%,#ff4f87)',category:'Transforming Mechs'},
-  lumalife:{name:'Luma Life',glyph:'👗',grad:'linear-gradient(145deg,#ff75b5,#ffb45f 55%,#ffe66d)',category:'Fashion & Lifestyle'},
-  starward:{name:'Starward Frontier',glyph:'🚀',grad:'linear-gradient(145deg,#162b6f,#4a6fff 55%,#5de7ff)',category:'Space Adventure'},
-  pocketbeasts:{name:'Pocket Beasts',glyph:'🐲',grad:'linear-gradient(145deg,#53d88b,#30c9ba 50%,#ffe454)',category:'Collectible Creatures'},
-  mythicforge:{name:'Mythic Forge',glyph:'⚔️',grad:'linear-gradient(145deg,#56338e,#9a51da 52%,#ff826d)',category:'Fantasy Action'},
-  nitrostreet:{name:'Nitro Street',glyph:'🏎️',grad:'linear-gradient(145deg,#ff3b30,#ff8c00 52%,#ffd60a)',category:'Die-cast & Racing'},
-  littleworld:{name:'Little World',glyph:'🧸',grad:'linear-gradient(145deg,#54c7ec,#68e0cf 55%,#ffda79)',category:'Preschool Play'},
-  ultraleague:{name:'Ultra League',glyph:'🦸',grad:'linear-gradient(145deg,#e52d27,#b31217 52%,#5b2cff)',category:'Super Heroes'}
+  gearmorph:{name:'GearMorph',glyph:'🤖',grad:'linear-gradient(145deg,#12c2e9,#7b4dff 52%,#ff4f87)',category:'Transforming Robots & Vehicles'},
+  lumalife:{name:'Luma Life',glyph:'👗',grad:'linear-gradient(145deg,#ff75b5,#ffb45f 55%,#ffe66d)',category:'Fashion Dolls, Dreamhouses & Style'},
+  starward:{name:'Starward Frontier',glyph:'🚀',grad:'linear-gradient(145deg,#162b6f,#4a6fff 55%,#5de7ff)',category:'Space Saga Figures, Ships & Playsets'},
+  pocketbeasts:{name:'Pocket Beasts',glyph:'🐲',grad:'linear-gradient(145deg,#53d88b,#30c9ba 50%,#ffe454)',category:'Collectible Creatures & Battle Sets'},
+  mythicforge:{name:'Mythic Forge',glyph:'⚔️',grad:'linear-gradient(145deg,#56338e,#9a51da 52%,#ff826d)',category:'Fantasy Warriors, Beasts & Castles'},
+  nitrostreet:{name:'Nitro Street',glyph:'🏎️',grad:'linear-gradient(145deg,#ff3b30,#ff8c00 52%,#ffd60a)',category:'Die-cast Cars, Tracks & Garages'},
+  littleworld:{name:'Little World',glyph:'🧸',grad:'linear-gradient(145deg,#54c7ec,#68e0cf 55%,#ffda79)',category:'Preschool Vehicles, Plush & Playsets'},
+  ultraleague:{name:'Ultra League',glyph:'🦸',grad:'linear-gradient(145deg,#e52d27,#b31217 52%,#5b2cff)',category:'Superheroes, Villains & Vehicles'}
 };
 
 const productSeeds = {
@@ -187,14 +187,7 @@ function packPalette(p){
   const arr=palettes[p.brand]; return arr[productNumber(p)%arr.length];
 }
 function brandLogoMarkup(brand){
-  if(brand==='gearmorph')return `<span class="pack-logo gear-logo"><b>GEAR</b><em>MORPH</em></span>`;
-  if(brand==='lumalife')return `<span class="pack-logo luma-logo"><b>Luma</b><em>Life</em></span>`;
-  if(brand==='starward')return `<span class="pack-logo star-logo"><b>STARWARD</b><em>FRONTIER</em></span>`;
-  if(brand==='pocketbeasts')return `<span class="pack-logo beast-logo"><b>POCKET</b><em>BEASTS</em></span>`;
-  if(brand==='mythicforge')return `<span class="pack-logo forge-logo"><b>MYTHIC</b><em>FORGE</em></span>`;
-  if(brand==='nitrostreet')return `<span class="pack-logo nitro-logo"><b>NITRO</b><em>STREET</em></span>`;
-  if(brand==='littleworld')return `<span class="pack-logo little-logo"><b>little</b><em>WORLD</em></span>`;
-  return `<span class="pack-logo ultra-logo"><b>ULTRA</b><em>LEAGUE</em></span>`;
+  return `<img class="brand-logo-asset" src="assets/brands/${brand}.svg" alt="${getBrand(brand).name}">`;
 }
 function productFeature(p){
   const name=p.name.toLowerCase();
@@ -275,18 +268,9 @@ function toyVisual(p){
 }
 function packageArt(p,compact=false){
   const meta=typeof v05ProductMeta==='function'?v05ProductMeta(p):null;
-  const [a,b,c,d]=packPalette(p);
-  const serial=String(productNumber(p)).padStart(3,'0');
-  const special=meta?.edition&&meta.edition!=='Mainline'?meta.edition.toUpperCase():'CORE COLLECTION';
-  return `<div class="toy-package premium-pack brand-${p.brand} ${compact?'compact':''}" style="${brandStyle(p)};--toy-a:${a};--toy-b:${b};--toy-c:${c};--toy-dark:${d}">
-    <div class="pack-cardback"></div>
-    <div class="pack-hanger"></div>
-    <div class="pack-header">${brandLogoMarkup(p.brand)}<span class="pack-series">${meta?`G${meta.generation} • W${meta.wave}`:seriesLabel(p)}</span></div>
-    <div class="pack-window"><div class="pack-backdrop"><span></span><span></span><span></span></div><div class="toy-render">${toyVisual(p)}</div><div class="plastic-glare"></div></div>
-    <div class="pack-feature">${productFeature(p)}</div>
-    <div class="pack-footer"><div><strong>${p.name}</strong><span>${special}</span></div><b class="pack-age">${packAge(p)}</b></div>
-    <div class="pack-number">#${serial}</div>
-    ${meta?.limited?`<div class="pack-limited">LIMITED</div>`:''}
+  return `<div class="real-package ${compact?'compact':''} brand-${p.brand}" style="${brandStyle(p)}">
+    <img src="assets/products/${p.id}.webp" alt="${p.name} toy package" loading="lazy" draggable="false">
+    ${meta?.limited?`<span class="real-pack-limited">LIMITED</span>`:''}
   </div>`;
 }
 
@@ -1396,7 +1380,7 @@ function v05ExtractCollectorFinds(p,qty,unitCost,preorder=false){
 }
 function v05FranchisePulseCard(id){
   const b=brands[id],f=state.franchises[id],l=v05Lore()[id];
-  return `<button class="franchise-pulse" style="--pulse-grad:${b.grad}" onclick="openFranchiseHub('${id}')"><span class="franchise-pulse-art" style="background:${b.grad}">${b.glyph}</span><span><small>GEN ${f.generation} · ${f.currentMedia}</small><b>${b.name}</b><em>${Math.round(f.health)} health · ${Math.round(f.collectorHeat)} collector heat</em></span><strong>›</strong></button>`;
+  return `<button class="franchise-pulse" style="--pulse-grad:${b.grad}" onclick="openFranchiseHub('${id}')"><span class="franchise-pulse-art real-brand-tile" style="background:${b.grad}"><img src="assets/brands/${id}.svg" alt=""></span><span><small>GEN ${f.generation} · ${f.currentMedia}</small><b>${b.name}</b><em>${Math.round(f.health)} health · ${Math.round(f.collectorHeat)} collector heat</em></span><strong>›</strong></button>`;
 }
 function v05FranchiseRail(){ return `<div class="franchise-rail">${Object.keys(brands).map(v05FranchisePulseCard).join('')}</div>`; }
 function v05CollectorHero(){
@@ -1415,7 +1399,7 @@ function migrateState(s){
   s.customerStats={...v04DefaultCustomerStats(),...(s.customerStats||{})};
   const defaults=v05DefaultFranchises(); s.franchises=s.franchises||{};
   Object.keys(brands).forEach(id=>{ s.franchises[id]={...defaults[id],...(s.franchises[id]||{})}; s.franchises[id].history=Array.isArray(s.franchises[id].history)?s.franchises[id].history:defaults[id].history; });
-  s.collectorVault=Array.isArray(s.collectorVault)?s.collectorVault:[]; s.collectorStats={...v05DefaultCollectorStats(),...(s.collectorStats||{})}; s.releaseOverrides=s.releaseOverrides||{}; s.franchiseYearProcessed=s.franchiseYearProcessed||gameDate(s.day||1).year; s.v05WelcomeShown=!!s.v05WelcomeShown; s.v051VisualShown=!!s.v051VisualShown;
+  s.collectorVault=Array.isArray(s.collectorVault)?s.collectorVault:[]; s.collectorStats={...v05DefaultCollectorStats(),...(s.collectorStats||{})}; s.releaseOverrides=s.releaseOverrides||{}; s.franchiseYearProcessed=s.franchiseYearProcessed||gameDate(s.day||1).year; s.v05WelcomeShown=!!s.v05WelcomeShown; s.v051VisualShown=!!s.v051VisualShown; s.v052ArtShown=!!s.v052ArtShown;
   products.forEach((p,idx)=>{
     if(!s.market[p.id])s.market[p.id]={hype:p.baseDemand,trend:0,buzz:'steady'};
     if(!Number.isFinite(s.market[p.id].potential))s.market[p.id].potential=latentPotential(p);
@@ -1430,7 +1414,7 @@ function freshState(){
   starting.forEach((id,idx)=>{const p=getProduct(id),qty=8+(idx%4)*2;inventory[id]={qty,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:p.wholesale,shelfQty:Math.min(qty,idx<2?6:idx<4?7:8)};placements[id]=idx<2?'window':idx<4?'feature':'main';});
   const market={};products.forEach((p,idx)=>market[p.id]={hype:clamp(p.baseDemand+((idx*13)%19)-9,20,96),trend:((idx%5)-2),buzz:'steady',potential:latentPotential(p)});
   const rivals={};rivalTemplates.forEach((r,ri)=>{const prices={},rinv={};products.forEach((p,idx)=>{prices[p.id]=roundMoney(p.rrp*(r.pricing+((((idx+ri*2)%9)-4)/100)));if(idx%11===ri)rinv[p.id]=4+((idx+ri*3)%10);});rivals[r.id]={cash:70000+ri*18000,rep:r.rep,share:17+ri*2,prices,inventory:rinv,lastSales:0,pressure:0,activity:'Watching the market.'};});
-  return {version:VERSION,day:1,cash:25000,todaySales:0,todayProfit:0,rating:4.2,reputation:55,customersToday:0,totalRevenue:0,totalProfit:0,inventory,market,rivals,supplierStock:Object.fromEntries(products.map(p=>[p.id,p.supplierStock])),upgrades:{stockroom:0,marketing:0,service:0,analytics:0},marketShare:18,lastEvent:'Grand Opening',eventLog:['Day 1: Your independent toy shop opened.'],chatter:[],sound:true,tab:'store',tutorialShown:false,orderCount:0,preorders:{},placements,displays:{},suppliers:Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}])),lastSummary:null,operations:v04DefaultOperations(),staff:{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]},customerStats:v04DefaultCustomerStats(),franchises:v05DefaultFranchises(),collectorVault:[],collectorStats:v05DefaultCollectorStats(),releaseOverrides:{},franchiseYearProcessed:1,v05WelcomeShown:false,v051VisualShown:false};
+  return {version:VERSION,day:1,cash:25000,todaySales:0,todayProfit:0,rating:4.2,reputation:55,customersToday:0,totalRevenue:0,totalProfit:0,inventory,market,rivals,supplierStock:Object.fromEntries(products.map(p=>[p.id,p.supplierStock])),upgrades:{stockroom:0,marketing:0,service:0,analytics:0},marketShare:18,lastEvent:'Grand Opening',eventLog:['Day 1: Your independent toy shop opened.'],chatter:[],sound:true,tab:'store',tutorialShown:false,orderCount:0,preorders:{},placements,displays:{},suppliers:Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}])),lastSummary:null,operations:v04DefaultOperations(),staff:{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]},customerStats:v04DefaultCustomerStats(),franchises:v05DefaultFranchises(),collectorVault:[],collectorStats:v05DefaultCollectorStats(),releaseOverrides:{},franchiseYearProcessed:1,v05WelcomeShown:false,v051VisualShown:false,v052ArtShown:false};
 }
 function loadState(){
   try{for(const key of [SAVE_KEY,...LEGACY_SAVE_KEYS]){const raw=localStorage.getItem(key);if(!raw)continue;const s=JSON.parse(raw);if(s&&s.inventory&&s.market&&s.rivals){const m=migrateState(s);localStorage.setItem(SAVE_KEY,JSON.stringify(m));return m;}}}catch(e){}
@@ -1489,7 +1473,7 @@ function openProductInfo(id){
 function openFranchiseHub(brand){
   const b=brands[brand],f=state.franchises[brand],l=v05Lore()[brand],brandProducts=products.filter(p=>p.brand===brand),held=(state.collectorVault||[]).filter(x=>!x.sold&&getProduct(x.productId).brand===brand),history=[...f.history].slice(-8).reverse();
   const hottest=[...brandProducts].sort((a,c)=>state.market[c.id].hype-state.market[a.id].hype)[0];
-  sheetContent.innerHTML=`<div class="franchise-hero" style="background:${b.grad}"><div><span>${b.glyph}</span><small>GENERATION ${f.generation} · WAVE ${f.wave}</small><h2>${b.name}</h2><p>${l.tagline}</p></div></div><p class="franchise-world">${l.world}</p><div class="franchise-metrics"><div><span>BRAND HEALTH</span><b>${Math.round(f.health)}</b><i><em style="width:${f.health}%"></em></i></div><div><span>FAN SENTIMENT</span><b>${Math.round(f.sentiment)}</b><i><em style="width:${f.sentiment}%"></em></i></div><div><span>COLLECTOR HEAT</span><b>${Math.round(f.collectorHeat)}</b><i><em style="width:${f.collectorHeat}%"></em></i></div><div><span>NOSTALGIA</span><b>${Math.round(f.nostalgia)}</b><i><em style="width:${f.nostalgia}%"></em></i></div></div><div class="media-card"><span>📺 CURRENT MEDIA</span><b>${f.currentMedia}</b><small>${state.day<=f.mediaBoostUntil?`Active media boost +${f.mediaBoost}% through ${gameDate(f.mediaBoostUntil).label}`:'Audience response is currently feeding into product demand organically.'}</small></div><div class="field-label">CURRENT & LEGACY PRODUCTS</div><div class="franchise-product-rail">${brandProducts.map(p=>{const meta=v05ProductMeta(p),life=lifecycleFor(p);return `<button onclick="openProductInfo('${p.id}')" style="--brand-grad:${b.grad}">${packageArt(p,true)}<span>${life.icon} ${life.name}</span><b>${p.name}</b><small>${meta.edition} · Wave ${meta.wave}</small></button>`;}).join('')}</div><div class="franchise-highlight"><span>🔥 HOTTEST NOW</span><b>${hottest.name}</b><small>${hypeLabel(state.market[hottest.id].hype)} · ${held.length} collector pieces from this franchise in your vault</small></div><div class="field-label">FRANCHISE HISTORY</div><div class="history-timeline">${history.map(x=>`<div><i></i><span>${x}</span></div>`).join('')}</div><button class="secondary-btn wide" onclick="openCollectorVault('${brand}')">VIEW ${b.name.toUpperCase()} COLLECTIBLES</button>`;openSheet();
+  sheetContent.innerHTML=`<div class="franchise-hero real-franchise-hero" style="background-image:linear-gradient(90deg,rgba(8,7,14,.12),rgba(8,7,14,.28)),url('assets/heroes/${brand}.webp');background-color:#17111f"><div><img class="franchise-hero-logo" src="assets/brands/${brand}.svg" alt="${b.name}"><small>GENERATION ${f.generation} · WAVE ${f.wave}</small><h2>${b.name}</h2><p>${l.tagline}</p></div></div><p class="franchise-world">${l.world}</p><div class="franchise-metrics"><div><span>BRAND HEALTH</span><b>${Math.round(f.health)}</b><i><em style="width:${f.health}%"></em></i></div><div><span>FAN SENTIMENT</span><b>${Math.round(f.sentiment)}</b><i><em style="width:${f.sentiment}%"></em></i></div><div><span>COLLECTOR HEAT</span><b>${Math.round(f.collectorHeat)}</b><i><em style="width:${f.collectorHeat}%"></em></i></div><div><span>NOSTALGIA</span><b>${Math.round(f.nostalgia)}</b><i><em style="width:${f.nostalgia}%"></em></i></div></div><div class="media-card"><span>📺 CURRENT MEDIA</span><b>${f.currentMedia}</b><small>${state.day<=f.mediaBoostUntil?`Active media boost +${f.mediaBoost}% through ${gameDate(f.mediaBoostUntil).label}`:'Audience response is currently feeding into product demand organically.'}</small></div><div class="field-label">CURRENT & LEGACY PRODUCTS</div><div class="franchise-product-rail">${brandProducts.map(p=>{const meta=v05ProductMeta(p),life=lifecycleFor(p);return `<button onclick="openProductInfo('${p.id}')" style="--brand-grad:${b.grad}">${packageArt(p,true)}<span>${life.icon} ${life.name}</span><b>${p.name}</b><small>${meta.edition} · Wave ${meta.wave}</small></button>`;}).join('')}</div><div class="franchise-highlight"><span>🔥 HOTTEST NOW</span><b>${hottest.name}</b><small>${hypeLabel(state.market[hottest.id].hype)} · ${held.length} collector pieces from this franchise in your vault</small></div><div class="field-label">FRANCHISE HISTORY</div><div class="history-timeline">${history.map(x=>`<div><i></i><span>${x}</span></div>`).join('')}</div><button class="secondary-btn wide" onclick="openCollectorVault('${brand}')">VIEW ${b.name.toUpperCase()} COLLECTIBLES</button>`;openSheet();
 }
 function openCollectorVault(filterBrand='all'){
   const held=(state.collectorVault||[]).filter(x=>!x.sold&&(filterBrand==='all'||getProduct(x.productId).brand===filterBrand)).sort((a,b)=>v05CollectorValue(b)-v05CollectorValue(a));
@@ -1581,11 +1565,80 @@ setTimeout(()=>{
 },700);
 
 
-/* v0.5.1 — Premium Toy Identity Overhaul welcome */
+/* v0.5.2 — Real Product Art Foundation welcome */
 setTimeout(()=>{
-  if(state && !state.v051VisualShown){
+  if(state && !state.v052ArtShown){
+    state.v052ArtShown=true;
     state.v051VisualShown=true;
+    state.v05WelcomeShown=true;
     saveState();
-    showSplash('THE TOY AISLE HAS BEEN REMASTERED','Every franchise now has its own packaging language and the products inside are drawn as actual toys — mechs, dolls, ships, creatures, castles, cars, preschool playsets and heroes — with product-specific forms, window boxes, blister packs, collector labels and shelf-ready branding.','🧸');
+    showSplash('THE BIG BRANDS HAVE ARRIVED','The toy aisle now uses dedicated product art files and franchise key art. Luma Life is the fashion-doll powerhouse, GearMorph owns transforming mechs, Starward Frontier dominates space adventure, Nitro Street rules die-cast racing — each with original characters and packaging built for this universe.','✨');
   }
-},1200);
+},450);
+
+
+/* ==========================================================================\n   v0.5.3 — Premium Store World + Readable Mobile UI\n   ========================================================================== */
+function v053StoreTier(){
+  const ops=state.operations||{};
+  const built=['secondCheckout','lighting','collectorCabinet','demoZone','security','giftWrap','biggerFloor'].filter(k=>ops[k]).length;
+  const net=state.cash+inventoryValue();
+  if(built>=6||net>=120000)return 'flagship';
+  if(built>=4||net>=65000)return 'premium';
+  if(built>=2||net>=38000)return 'neighbourhood';
+  return 'starter';
+}
+function v053CustomerAsset(kind,index=0){
+  const map={parent:'parent',kid:'kid',collector:'collector',bargain:'bargain',gift:'gift',impulse:'impulse'};
+  return `assets/characters/${map[kind]||'parent'}-${(index%4)+1}.svg`;
+}
+function v053StaffAsset(role){return `assets/characters/staff-${['cashier','floor','stock','manager'].includes(role)?role:'floor'}.svg`;}
+function v053ShelfSlot(p){
+  if(!p)return `<div class="v053-empty-facing"><span>SOLD<br>OUT</span></div>`;
+  const inv=state.inventory[p.id];
+  return `<button class="v053-facing" onclick="openPriceSheet('${p.id}')">${packageArt(p,true)}<b>${p.name}</b><small>${inv?.shelfQty||0} on shelf</small></button>`;
+}
+function renderStoreWorld(owned,chatter,hottest){
+  const tier=v053StoreTier(),front=[...owned].slice(0,6),cs=state.customerStats||v04DefaultCustomerStats();
+  const team=v04Team().slice(0,4);
+  const people=v04CustomerTypes().slice(0,5);
+  const displayBrands=Object.keys(state.displays||{}).filter(b=>state.displays[b]);
+  return `<div class="store-world v053-store-world tier-${tier}" style="background-image:url('assets/stores/${tier}.svg')">
+    <div class="v053-store-title"><span>${tier==='starter'?'INDEPENDENT TOY SHOP':tier==='neighbourhood'?'NEIGHBOURHOOD TOY STORE':tier==='premium'?'PREMIUM TOY DESTINATION':'FLAGSHIP TOY STORE'}</span><b>${Math.round(cs.satisfaction||78)}% HAPPY SHOPPERS</b></div>
+    <div class="v053-shelf v053-shelf-left">${[0,1,2].map(i=>v053ShelfSlot(front[i])).join('')}</div>
+    <div class="v053-shelf v053-shelf-right">${[3,4,5].map(i=>v053ShelfSlot(front[i])).join('')}</div>
+    <button class="v053-endcap" onclick="openBuySheet('${hottest.id}')" style="background-image:linear-gradient(0deg,rgba(8,6,15,.88),rgba(8,6,15,.1)),url('assets/heroes/${hottest.brand}.webp')"><span>🔥 HOT DROP</span><b>${getBrand(hottest.brand).name}</b><strong>${hottest.name}</strong></button>
+    ${displayBrands.slice(0,2).map((b,i)=>`<button class="v053-brand-display display-${i}" onclick="openFranchiseHub('${b}')" style="background-image:linear-gradient(0deg,rgba(5,5,10,.8),rgba(5,5,10,.08)),url('assets/heroes/${b}.webp')"><img src="assets/brands/${b}.svg" alt="${brands[b].name}"><span>BRANDED DISPLAY</span></button>`).join('')}
+    <div class="v053-people">${people.map((t,i)=>`<div class="v053-person customer c${i}"><img src="${v053CustomerAsset(t.id,i)}" alt="${t.name}">${i===1&&chatter[0]?`<div class="v053-bubble">${chatter[0].text}</div>`:''}</div>`).join('')}${team.map((s,i)=>`<div class="v053-person staff s${i}"><img src="${v053StaffAsset(s.role)}" alt="${s.name}"><span>${s.name}</span></div>`).join('')}</div>
+    <div class="v053-upgrade-badges">${state.operations.secondCheckout?'<span>🧾 2 CHECKOUTS</span>':''}${state.operations.collectorCabinet?'<span>💎 COLLECTOR CABINET</span>':''}${state.operations.demoZone?'<span>🎮 DEMO ZONE</span>':''}${state.operations.giftWrap?'<span>🎁 GIFT WRAP</span>':''}</div>
+  </div>`;
+}
+function v053CustomerMix(){
+  const cs=state.customerStats||v04DefaultCustomerStats();
+  return `<div class="v053-customer-rail">${v04CustomerTypes().map((t,i)=>`<div class="v053-customer-card"><img src="${v053CustomerAsset(t.id,i)}" alt="${t.name}"><div><b>${t.name}</b><span>${cs.types?.[t.id]||0} visited last day</span></div></div>`).join('')}</div>`;
+}
+function renderStore(){
+  const hottest=products.filter(p=>v05LaunchDay(p)<=state.day+5&&lifecycleFor(p).key!=='discontinued').sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0]||products[0];
+  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).map(getProduct),front=[...owned].sort((a,b)=>(placementFactor(b.id)*state.market[b.id].hype)-(placementFactor(a.id)*state.market[a.id].hype)).slice(0,6),chatter=getChatter(),preorderCount=preorderUnits();
+  screen.innerHTML=`<section class="store-world-wrap v053-wrap">${renderStoreWorld(front,chatter,hottest)}<div class="store-command-card v053-command"><div><span class="kicker">${gameDate().label.toUpperCase()} · ${seasonName()}</span><h2>${state.lastSummary?'Set up today’s shop floor.':'Your toy shop is ready.'}</h2><p>${state.lastSummary?`${state.lastSummary.customers} visitors · ${state.lastSummary.transactions||0} baskets · ${money(state.lastSummary.sales)} sales last day.`:'Watch real products leave the shelves, listen to shoppers and react to the market.'}</p></div><button class="primary-btn next-day-btn" onclick="endDay()">OPEN FOR ${state.operations.hours} HOURS →</button></div></section>
+  <section class="section">${v04OperationsPanel()}</section>
+  <section class="section"><div class="section-head"><div><h2>🔥 Today’s Big Product</h2><p>${getBrand(hottest.brand).name} · ${hypeLabel(state.market[hottest.id].hype)} demand</p></div><button onclick="openBuySheet('${hottest.id}')">View</button></div><div class="v053-product-hero" style="background-image:linear-gradient(90deg,rgba(9,7,15,.92),rgba(9,7,15,.22)),url('assets/heroes/${hottest.brand}.webp')" onclick="openBuySheet('${hottest.id}')"><div><img src="assets/brands/${hottest.brand}.svg" alt=""><h3>${hottest.name}</h3><p>${v05ProductMeta(hottest).edition} · ${state.supplierStock[hottest.id]} supplier units left</p><b>${money(effectiveWholesale(hottest))} wholesale</b></div><div class="v053-hero-pack">${packageArt(hottest,false)}</div></div></section>
+  ${preorderCount?`<section class="section"><div class="preorder-strip" onclick="switchTab('market')"><span>🚚</span><div><b>${preorderCount} pre-order units incoming</b><small>Tap to review your committed launch stock.</small></div><strong>VIEW →</strong></div></section>`:''}
+  <section class="section"><div class="section-head"><div><h2>Who’s Shopping?</h2><p>Different shoppers value price, hype, scarcity and service differently.</p></div></div>${v053CustomerMix()}</section>
+  <section class="section"><div class="section-head"><div><h2>Customer Buzz</h2><p>Read the floor for clues before buying your next shipment.</p></div></div>${chatter.slice(0,3).map((c,i)=>`<div class="chatter v053-chatter"><img class="v053-chat-avatar" src="${v053CustomerAsset(v04CustomerTypes()[i%6].id,i)}" alt=""><div><p>“${c.text}”</p><small>${c.note}</small></div></div>`).join('')}</section>
+  <section class="section"><div class="grid2"><div class="action-card accent visual-action" onclick="switchTab('market')"><div class="action-orb">📦</div><h3>Buy & Pre-order</h3><p>${inventoryUsed()} owned · ${preorderCount} incoming.</p></div><div class="action-card visual-action" onclick="openCollectorVault()"><div class="action-orb">💎</div><h3>Collector Vault</h3><p>${v05VaultHeld()} special pieces held.</p></div><div class="action-card visual-action" onclick="openStaffSheet()"><div class="action-orb">👥</div><h3>Manage Team</h3><p>${v04Team().length} staff working this store.</p></div><div class="action-card visual-action" onclick="switchTab('rivals')"><div class="action-orb">⚔️</div><h3>Rival Watch</h3><p>See prices, stock and competitor moves.</p></div></div></section>`;
+}
+function renderMarket(){
+  const available=products.filter(p=>v05LaunchDay(p)<=state.day+7||lifecycleFor(p).key!=='rumour'||state.releaseOverrides[p.id]);
+  const filtered=available.filter(p=>currentFilter==='all'||p.brand===currentFilter).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype);
+  const hero=filtered[0]||products[0],preorders=Object.entries(state.preorders||{}).filter(([,x])=>x.qty>0);
+  screen.innerHTML=`<section class="section"><div class="v053-market-hero" style="background-image:linear-gradient(90deg,rgba(7,6,12,.94),rgba(7,6,12,.22)),url('assets/heroes/${hero.brand}.webp')"><div><span class="kicker">BUYER’S MARKET · ${gameDate().label.toUpperCase()}</span><img src="assets/brands/${hero.brand}.svg" alt=""><h2>${hero.name}</h2><p>${hypeLabel(state.market[hero.id].hype)} demand · ${lifecycleFor(hero).name} · ${state.supplierStock[hero.id]} supplier units</p><button class="primary-btn" onclick="openBuySheet('${hero.id}')">${v05LaunchDay(hero)>state.day?'PRE-ORDER':'ORDER STOCK'} · ${money(effectiveWholesale(hero))}</button></div><div>${packageArt(hero,false)}</div></div>${preorders.length?`<div class="preorder-panel"><span class="kicker">INCOMING LAUNCH STOCK</span>${preorders.map(([id,x])=>`<div><b>${getProduct(id).name}</b><span>${x.qty} units · ${gameDate(v05LaunchDay(getProduct(id))).short}</span></div>`).join('')}</div>`:''}<div class="section-head"><div><h2>Shop the Supplier Floor</h2><p>Big product art, clear prices and less tiny text.</p></div></div><div class="toolbar"><button class="chip ${currentFilter==='all'?'active':''}" onclick="setFilter('all')">ALL BRANDS</button>${Object.entries(brands).map(([id,b])=>`<button class="chip ${currentFilter===id?'active':''}" onclick="setFilter('${id}')">${b.name}</button>`).join('')}</div><div class="market-grid">${filtered.map(v05MarketProductCard).join('')}</div></section>`;
+}
+function inventoryRow(p){
+  const inv=state.inventory[p.id],m=state.market[p.id],margin=inv.price-(inv.avgCost||p.wholesale),pl=shelfPlacements[state.placements[p.id]||'main'],life=lifecycleFor(p);v04EnsureShelf(inv,p.id);const stockroom=Math.max(0,inv.qty-inv.shelfQty);
+  return `<div class="inventory-row v053-inventory" style="${brandStyle(p)}" onclick="openPriceSheet('${p.id}')"><div class="inventory-thumb">${packageArt(p,true)}</div><div class="v053-inventory-copy"><span class="v053-brandline">${getBrand(p.brand).name} · ${life.icon} ${life.name}</span><h3>${p.name}</h3><p><b>${money(inv.price)}</b> · <span class="${margin>=0?'profit':'loss'}">${margin>=0?'+':''}${money(margin)} margin</span></p><small>${inv.shelfQty} on shelf · ${stockroom} in stockroom · ${heat(m.hype)} ${hypeLabel(m.hype)}</small></div><div class="stock-pill">${inv.qty}</div></div>`;
+}
+function renderProducts(){
+  const owned=Object.keys(state.inventory).map(getProduct).filter(p=>p&&(state.inventory[p.id]?.qty||0)>0).sort((a,b)=>placementFactor(b.id)-placementFactor(a.id)||state.market[b.id].hype-state.market[a.id].hype);
+  screen.innerHTML=`<section class="section"><div class="section-head"><div><h2>Your Toy Aisle</h2><p>Tap a product to change price or shelf position.</p></div></div><div class="merch-overview"><div><span>FRONT WINDOW</span><b>${placementCount('window')}/3</b></div><div><span>ENTRANCE</span><b>${placementCount('feature')}/4</b></div><div><span>STOCKROOM</span><b>${v04StockroomUnits()}</b></div></div><div class="restock-banner"><div><span>📦</span><div><b>${v04RestockCapacity()} units/day restock capacity</b><small>Stock in the back cannot sell until it reaches the shelf.</small></div></div><button onclick="manualRestock()">RESTOCK NOW</button></div>${owned.length?owned.map(p=>inventoryRow(p)).join(''):`<div class="empty"><div class="emoji">📦</div><h3>Your shelves are empty</h3><p>Order products from the Market.</p><button class="primary-btn" onclick="switchTab('market')">OPEN MARKET</button></div>`}</section>`;
+}
+setTimeout(()=>{if(state&&!state.v053VisualShown){state.v053VisualShown=true;state.v052ArtShown=true;state.v051VisualShown=true;state.v05WelcomeShown=true;saveState();showSplash('THE STORE JUST GOT BIGGER','v0.5.3 adds a redesigned store world with real customer and staff art, visible product facings, branded endcaps and a readability pass that makes the smallest game text significantly larger on iPhone.','🏬');}},350);

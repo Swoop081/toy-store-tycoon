@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="900" viewBox="0 0 720 900">
+    <defs>
+      <linearGradient id="packbg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#15245F"/><stop offset="1" stop-color="#F0444F"/></linearGradient>
+      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".75"/><stop offset=".4" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="plastic" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".92"/><stop offset="1" stop-color="#dbe5f3" stop-opacity=".76"/></linearGradient>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".38"/></filter>
+      <filter id="smallshadow"><feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000" flood-opacity=".32"/></filter>
+      <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="1"/></pattern>
+    </defs><rect width="720" height="900" fill="#0f1015" opacity="0"/>
+    <g filter="url(#shadow)"><rect x="48" y="38" width="624" height="824" rx="35" fill="url(#packbg)"/><rect x="105" y="214" width="510" height="450" rx="32" fill="url(#plastic)" stroke="#fff" stroke-opacity=".75" stroke-width="8"/></g><path d="M510 38l-118 205h77l-66 136 188-220h-89l71-121z" fill="#FFD54F" opacity=".23"/>
+    <g font-family="Arial, Helvetica, sans-serif"><text x="72" y="112" fill="#fff" font-size="34" font-weight="900" letter-spacing="1">ULTRA LEAGUE</text>
+    <text x="72" y="150" fill="#fff" opacity=".82" font-size="16" font-weight="700" letter-spacing="2">POWER LIVES HERE</text>
+    <rect x="515" y="90" width="106" height="48" rx="24" fill="#0b0d12" fill-opacity=".72"/><text x="568" y="121" text-anchor="middle" fill="#fff" font-size="20" font-weight="900">8+</text></g>
+    <g transform="translate(0 82) scale(.88)" transform-origin="360 420"><g transform="translate(0 0) scale(1)" transform-origin="360 380" filter="url(#smallshadow)"><circle cx="360" cy="206" r="61" fill="#d19a79"/><path d="M304 269h112l49 177-66 57-17 132h-44l-17-132-66-57z" fill="#F0444F" stroke="#111743" stroke-width="15"/><path d="M318 282l42 41 44-41" fill="none" stroke="#5EDCFF" stroke-width="12"/><path d="M295 304l-97 145M425 304l97 145" stroke="#F0444F" stroke-width="29" stroke-linecap="round"/><path d="M414 281q122 39 93 231l-93-72z" fill="#FFD54F" opacity=".78"/><path d="M337 327l23-39 25 39-25 39z" fill="#5EDCFF"/></g></g>
+    <path d="M123 228Q268 186 590 233" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="11" stroke-linecap="round"/>
+    <rect x="92" y="670" width="536" height="56" rx="28" fill="#0b0d12" fill-opacity=".84"/><text x="360" y="706" text-anchor="middle" fill="#fff" font-family="Arial" font-size="20" font-weight="900" letter-spacing="2">DELUXE HERO</text>
+    <g font-family="Arial, Helvetica, sans-serif"><text x="72" y="770" fill="#fff" font-size="34" font-weight="900"><tspan x="72" dy="0">TITAN WOMAN DELUXE</tspan></text><text x="72" y="842" fill="#fff" opacity=".78" font-size="15" font-weight="800" letter-spacing="2">CORE COLLECTION • #044 • SERIES 1</text></g>
+    <path d="M95 56L612 837" stroke="url(#shine)" stroke-width="24" stroke-linecap="round" opacity=".25"/>
+    </svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="900" viewBox="0 0 720 900">
+    <defs>
+      <linearGradient id="packbg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0B1630"/><stop offset="1" stop-color="#00C9FF"/></linearGradient>
+      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".75"/><stop offset=".4" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="plastic" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".92"/><stop offset="1" stop-color="#dbe5f3" stop-opacity=".76"/></linearGradient>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".38"/></filter>
+      <filter id="smallshadow"><feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000" flood-opacity=".32"/></filter>
+      <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="1"/></pattern>
+    </defs><rect width="720" height="900" fill="#0f1015" opacity="0"/>
+    <g filter="url(#shadow)"><path d="M83 38h554l35 50-20 728-58 46H106l-58-46L48 86z" fill="url(#packbg)"/><path d="M105 219l43-39h446l21 39-24 444-42 35H173l-68-35z" fill="url(#plastic)" stroke="#fff" stroke-opacity=".75" stroke-width="8"/></g><path d="M83 137h132l28-44h90M637 758H505l-28 44h-90" fill="none" stroke="#fff" stroke-opacity=".17" stroke-width="8"/><rect x="48" y="38" width="624" height="824" fill="url(#grid)" opacity=".35"/>
+    <g font-family="Arial, Helvetica, sans-serif"><text x="72" y="112" fill="#fff" font-size="43" font-weight="900" letter-spacing="1">GEARMORPH</text>
+    <text x="72" y="150" fill="#fff" opacity=".82" font-size="16" font-weight="700" letter-spacing="2">CONVERT • COMBINE • BATTLE</text>
+    <rect x="515" y="90" width="106" height="48" rx="24" fill="#0b0d12" fill-opacity=".72"/><text x="568" y="121" text-anchor="middle" fill="#fff" font-size="20" font-weight="900">8+</text></g>
+    <g transform="translate(0 82) scale(.88)" transform-origin="360 420"><g filter="url(#smallshadow)"><rect x="170" y="315" width="340" height="175" rx="28" fill="#00C9FF" stroke="#0B1630" stroke-width="14"/><path d="M510 350h84l52 67v73H502z" fill="#FF5A36" stroke="#0B1630" stroke-width="14"/><rect x="205" y="345" width="235" height="58" rx="12" fill="#b9f5ff" opacity=".86"/><circle cx="235" cy="512" r="48" fill="#10131b"/><circle cx="235" cy="512" r="23" fill="#FF5A36"/><circle cx="555" cy="512" r="48" fill="#10131b"/><circle cx="555" cy="512" r="23" fill="#FF5A36"/><path d="M260 276l68-62h116l78 62-38 62H292z" fill="#FF5A36" stroke="#0B1630" stroke-width="14"/><path d="M340 233v-86h72v86" fill="#00C9FF" stroke="#0B1630" stroke-width="14"/><path d="M326 172l-46-52 74 18M425 172l46-52-74 18" stroke="#B6F7FF" stroke-width="16" stroke-linecap="round"/></g></g>
+    <path d="M123 228Q268 186 590 233" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="11" stroke-linecap="round"/>
+    <rect x="92" y="670" width="536" height="56" rx="28" fill="#0b0d12" fill-opacity=".84"/><text x="360" y="706" text-anchor="middle" fill="#fff" font-family="Arial" font-size="20" font-weight="900" letter-spacing="2">VEHICLE + MECH</text>
+    <g font-family="Arial, Helvetica, sans-serif"><text x="72" y="770" fill="#fff" font-size="34" font-weight="900"><tspan x="72" dy="0">TITAN HAULER</tspan></text><text x="72" y="842" fill="#fff" opacity=".78" font-size="15" font-weight="800" letter-spacing="2">CORE COLLECTION • #003 • SERIES 1</text></g>
+    <path d="M95 56L612 837" stroke="url(#shine)" stroke-width="24" stroke-linecap="round" opacity=".25"/>
+    </svg>

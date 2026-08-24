@@ -1,7 +1,7 @@
 {
   "name": "Toy Store Tycoon",
   "short_name": "Toy Tycoon",
-  "description": "A premium mobile toy retail tycoon game about trends, living toy franchises, collector markets, staff, customers, pricing, rival stores and risky stock bets.",
+  "description": "A premium mobile toy retail tycoon game about trends, living toy franchises, dedicated product art, collector markets, staff, customers, pricing, rival stores, advertising wars, supplier exclusives, multi-store expansion, regional stock transfers, branch managers and risky stock bets.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

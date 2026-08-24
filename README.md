@@ -1,118 +1,199 @@
-# Toy Store Tycoon v0.5.1 — Premium Toy Identity Overhaul
+# Toy Store Tycoon v0.7.0 — Multi-Store Expansion + Regional Management
 
-GitHub Pages-ready mobile-first build. This release supersedes v0.5.0 and keeps the complete Franchise Universe + Collector Economy / Store Operations / Living Market simulation while substantially rebuilding how the toys themselves look inside the game.
+**Current GitHub Pages baseline**
 
-## What changed in v0.5.1
+v0.7 turns the single successful toy shop into a growing regional chain while preserving the full v0.6 Retail War, v0.5 franchise/collector economy, v0.4 store operations and the premium large-text mobile presentation.
 
-### Toys now read as actual physical toys
-The old generic/placeholder-style product presentation has been replaced with a richer self-contained toy rendering system. Products now appear inside clear retail packaging with illustrated toy forms rather than relying on a single generic symbol per franchise.
+## What is new
 
-The 48 current products can visually resolve into different toy constructions, including:
-- Transforming mechs, wheeled mech-haulers, winged mechs and dual packs.
-- Fashion dolls, twin doll sets, roadsters, dreamhouses, wardrobes and beach playsets.
-- Starfighters, cruisers, speeders, space outposts and action figures.
-- Creature figures, mystery eggs, multipacks and battle arenas.
-- Fantasy warriors, twin packs, wyverns, castles and siege toys.
-- Die-cast cars, multipacks, loop tracks, haulers and garages.
-- Preschool buses, farms, construction toys, plush bears, kitchens and pretend markets.
-- Superhero figures, hero multipacks, bikes and headquarters playsets.
+### Multiple persistent store locations
+The player can now operate up to five distinct locations:
 
-Product colour palettes also vary within each franchise, so two products from the same brand no longer look like identical recoloured cards.
+1. **Town Centre — Independent High Street**
+   - Existing starting shop.
+   - Balanced demand and heavy price competition.
+   - Daily rent: **$320**.
 
-### Eight distinct packaging identities
-Every fictional franchise now has its own retail packaging architecture rather than sharing one box template.
+2. **Family Suburbs — Suburban Family Store**
+   - Fit-out: **$18,000** + **$4,000 bond**.
+   - Daily rent: **$390**.
+   - Strong Luma Life, Pocket Beasts and Little World demand.
 
-- **GearMorph** — angular mechanical boxes, cyan window edging, transformation callouts and MECH // SHIFT styling.
-- **Luma Life** — glossy rounded doll boxes, lifestyle styling and bright fashion palettes.
-- **Starward Frontier** — dark premium sci-fi boxes, luminous window treatment and fleet-series presentation.
-- **Pocket Beasts** — playful rounded creature packs, bright collection messaging and egg/arena-friendly presentation.
-- **Mythic Forge** — darker fantasy packaging with metallic/stone-like framing and collector-fantasy typography.
-- **Nitro Street** — racing/blister-card inspired packaging with speed stripes and die-cast presentation.
-- **Little World** — soft rounded preschool boxes with light friendly colours and simple age-led presentation.
-- **Ultra League** — bold angular superhero packaging with high-contrast power-series branding.
+3. **Collector District — Collector Boutique**
+   - Fit-out: **$24,000** + **$6,000 bond**.
+   - Daily rent: **$440**.
+   - Lower traffic but much stronger premium/collector demand.
 
-### Proper front-of-box details
-Packaging now includes franchise-specific logos, product name, generation/wave, collector/mainline designation, age badge, product numbering, limited-edition ribbons and product-specific feature callouts such as:
-- `TRANSFORMS • 12 STEPS`
-- `VEHICLE ⇄ MECH`
-- `FASHION ROADSTER`
-- `GALACTIC PLAYSET`
-- `MYSTERY CREATURE INSIDE`
-- `FORTRESS PLAYSET`
-- `DIE-CAST SPEED SERIES`
-- `PLAY • LEARN • IMAGINE`
-- `POWER SERIES`
+4. **Shopping Centre — High-Traffic Mall Store**
+   - Fit-out: **$42,000** + **$10,000 bond**.
+   - Daily rent: **$790**.
+   - Huge traffic, expensive occupancy and strong big-brand launch performance.
 
-### Better packaging scale throughout the game
-The new physical packs are integrated into:
-- Supplier / Market product cards.
-- Product detail and ordering sheets.
-- Store shelves.
-- Trend Alert hero cards.
-- Product inventory.
-- Franchise Hub product rails.
-- Collector Vault cards.
-- Store displays and other compact product placements.
+5. **Retail Park — Large Format Toy Store**
+   - Fit-out: **$60,000** + **$12,000 bond**.
+   - Daily rent: **$980**.
+   - Destination shopping with strong large-range, vehicle and playset demand.
 
-Close-up product sheets use a much larger, cleaner package render while shelf/vault uses retain readable compact variants.
+Each branch independently owns its:
+- inventory and shelf quantities;
+- prices and merchandising positions;
+- staff roster;
+- opening hours and store operations;
+- upgrades and franchise displays;
+- pre-orders;
+- rating and reputation;
+- daily sales, customers and operating profit;
+- lifetime revenue and profit.
 
-### Self-contained GitHub Pages presentation
-No external image CDN, paid art service or generated image dependency is required for this pass. The toy illustrations and packaging are produced by the app itself using HTML/CSS and inline SVG-style vector shapes, so the build stays portable, offline-capable and GitHub Pages friendly.
+Cash, suppliers, franchise health, Collector Vault, Retail War, market hype and corporate loyalty remain company-wide.
 
-### One-time visual-remaster splash
-Existing saves receive a one-time in-game notice explaining that the toy aisle has been remastered. Gameplay progress is not reset.
+## Active Store switching
+A new large mobile location selector appears on **Store**, **Market** and **Products**.
 
-## Gameplay retained from v0.5.0
-- 48 products across 8 original franchises.
-- Franchise Brand Health, Fan Sentiment, Collector Heat and Nostalgia.
-- Fictional media hits/flops, fan backlash, anniversaries and reboots.
-- Generations, waves, reissues and long-term release scheduling.
-- Mainline / Fan / Collector editions, limited runs and supplier exclusives.
-- Individually tracked Colour Variant, Metallic Variant, Ultra-Rare Chase and Prototype Colourway pulls.
-- Mint / Near Mint / Shelf Wear / Damaged Box collector condition.
-- Collector Vault, in-store display and dynamic secondary-market values.
-- 84-day compressed retail year and seasonal demand.
-- Product lifecycle and hidden demand potential.
-- Pre-orders and launch-day delivery.
-- Shelf merchandising / stockroom separation.
-- Four suppliers with relationship pricing and allocation effects.
-- Persistent rival stock, buying, selling, price wars and rumours.
-- Staff, checkout capacity, queues, abandoned baskets and six customer archetypes.
-- Satisfaction, cleanliness, maintenance, shrinkage and permanent shop upgrades.
-- Weighted-average inventory cost basis and full end-of-day finances.
-- Local autosave and offline PWA support.
+Switching branch changes the actual game context. Supplier orders and pre-orders go to the currently selected branch, and its own staff/inventory/operations are loaded into the normal game screens.
+
+The top date display also shows the active-location icon.
+
+## Local demand differences
+Locations are not cosmetic skins. Their customer mix changes product demand.
+
+Examples:
+- **Family Suburbs** strongly favours preschool, fashion-doll and collectible-creature ranges.
+- **Collector District** favours scarce GearMorph, Starward Frontier, Mythic Forge, Pocket Beasts and Ultra League stock.
+- **Shopping Centre** rewards mainstream hot launches and impulse-friendly ranges.
+- **Retail Park** performs well with die-cast, large playsets and broad destination ranges.
+
+Territory share from v0.6 also feeds into local branch traffic.
+
+## Branch managers
+Every branch can have a dedicated manager. Candidate managers have skill, salary and a persistent management trait:
+
+- **Sales Driver** — more branch traffic.
+- **Merchandising Ace** — stronger product conversion.
+- **Cost Cutter** — lower operating/rent costs.
+- **Collector Specialist** — stronger scarce-toy demand.
+- **Inventory Hawk** — faster automatic shelf replenishment.
+- **Community Hero** — stronger service/satisfaction.
+
+Manager autonomy can be set to:
+- **Low** — player remains hands-on; weaker passive efficiency.
+- **Medium** — manager handles routine staffing/restocking/pricing.
+- **High** — manager actively reacts to local demand and prices.
+
+Branches without a manager continue trading when inactive, but at materially lower efficiency.
+
+Manager salary is charged as a real operating cost.
+
+## Passive branch simulation
+Only one store is directly displayed at a time, but every other open branch continues trading when a day advances.
+
+Inactive locations simulate:
+- customer traffic;
+- local product preferences;
+- live market hype;
+- price sensitivity;
+- shelf replenishment;
+- transactions and basket size;
+- wages;
+- manager salary;
+- rent and maintenance;
+- stockouts;
+- satisfaction;
+- rating changes;
+- branch profit/loss.
+
+A high-autonomy manager can also make routine price adjustments around hype and clearance status.
+
+## Regional stock transfers
+The Empire screen can send stock from any store to any other open location.
+
+- Transfer cost: **$35 + $1.50 per unit**.
+- Inventory leaves the sending store immediately.
+- Delivery arrives the next trading day.
+- Original weighted-average acquisition cost is preserved.
+- Incoming stock arrives into the destination branch for local sale.
+- Transfers are shown in a regional logistics queue.
+
+This allows the player to rescue a selling-out branch using stock that is stagnating elsewhere.
+
+## Regional Empire dashboard
+The Empire screen is now a real chain-management hub with:
+- number of locations;
+- stock across the whole chain;
+- chain inventory/collector value;
+- expansion spend;
+- lifetime chain sales and operating profit;
+- one large card per store;
+- branch last-day sales/profit/rating/stock;
+- manager status and autonomy;
+- Manage Store / Manager / Move Stock actions;
+- transfer queue;
+- expansion opportunities.
+
+The previous Supplier Relationships, Franchise Portfolio, Collector Vault, Store Operations, branded displays, business upgrades and Toy Club systems remain available below the regional layer.
+
+## Chain day summary
+End-of-day results now add a regional summary showing:
+- chain sales;
+- chain operating profit;
+- number of trading stores;
+- total chain visitors;
+- stock-transfer arrivals;
+- launch stock delivered to inactive branches.
+
+The active branch also now pays its own rent as part of daily operating profit.
+
+## Readability
+The large-text mobile rules from v0.5.3/v0.6 remain locked. Multi-store cards, manager decisions, expansion costs, location selectors and transfer screens all use the larger mobile type scale rather than dense desktop-style tables.
 
 ## Save migration
-v0.5.1 uses the save key `toyStoreTycoon.v0.5.1`.
+Save key: `toyStoreTycoon.v0.7`
 
-Compatible v0.5, v0.4, v0.3, v0.2 and v0.1 saves are detected and migrated automatically. Existing business state, inventory, pricing, staff, rivals, suppliers, franchise history and Collector Vault pieces are retained.
+The build automatically migrates the current single-store business from:
+- v0.6
+- v0.5.3
+- v0.5.2
+- v0.5.1
+- v0.5
+- v0.4
+- v0.3
+- v0.2
+- v0.1
 
-## Deploy to GitHub Pages
-1. Extract this ZIP.
-2. Upload the **contents** of the `Toy-Store-Tycoon-v0.5.1-Premium-Toy-Identity-Overhaul` folder to the root of the GitHub repository.
-3. In GitHub open **Settings → Pages**.
-4. Select **Deploy from a branch**.
-5. Choose `main` and `/ (root)`.
-6. Open the Pages URL on iPhone Safari.
-7. Use **Share → Add to Home Screen** for the standalone PWA experience.
+The existing shop becomes **Town Centre / S001** with its inventory, staff, operations, prices, upgrades, displays, customer state and history preserved. New chain data is layered on top.
 
-The service-worker cache is versioned as `toy-store-tycoon-v0.5.1`, so the previous v0.5 cache is replaced after deployment.
+## GitHub Pages deployment
+1. Extract the ZIP.
+2. Upload the **contents** of `Toy-Store-Tycoon-v0.7-Multi-Store-Regional-Management/` to the root of the GitHub repository.
+3. In GitHub: **Settings → Pages → Deploy from a branch → main → /(root)**.
+4. Open the Pages URL on iPhone Safari.
+5. Use **Share → Add to Home Screen** for the standalone PWA experience.
 
-## Files
-- `index.html` — app shell.
-- `styles.css` — premium mobile UI plus the new franchise packaging architectures.
-- `game.js` — complete simulation plus product-specific toy/vector rendering.
-- `manifest.json` — PWA configuration.
-- `sw.js` — offline/service-worker cache.
-- `assets/icons/` — Home Screen / PWA icons.
+The service-worker cache is versioned as `toy-store-tycoon-v0.7.0`, so the v0.6 cached build will be replaced after deployment/reload.
 
-## Validation completed
-- JavaScript syntax check passed.
-- Service-worker syntax check passed.
-- Manifest JSON validation passed.
-- v0.5.1 save key / v0.5 migration path confirmed in source.
-- All 48 products remain present across all 8 franchises.
-- Product renderer includes distinct category/product branches for vehicles, figures, creatures, playsets, buildings, multipacks and accessories.
-- Package renderer is used consistently by Market, ordering sheets, Store, Products, Franchise Hub and Collector Vault.
+## Validation performed
+- JavaScript syntax checks for `game.js`, `v06.js`, `v07.js` and `sw.js`.
+- Fresh mobile boot into a one-store v0.7 chain.
+- Empire regional dashboard render.
+- Opened Family Suburbs from starting cash.
+- Hired a persistent branch manager.
+- Transferred five GearMorph units Town Centre → Family Suburbs.
+- Advanced the trading day and confirmed transfer arrival.
+- Confirmed inactive branch simulation and combined chain P&L.
+- Switched active store and confirmed its separate stock/staff context.
+- Confirmed supplier purchase goes only to the selected branch.
+- Simulated a five-location chain for 30 consecutive days without runtime exceptions.
+- Tested conversion of a v0.6-style single-store state into the v0.7 chain structure while preserving cash, stock and staff.
+- Validated all service-worker asset paths and ZIP integrity.
 
-No backend is required. All gameplay and saves remain local to the browser/device.
+## Main files
+- `index.html`
+- `styles.css`
+- `game.js`
+- `v06.js`
+- `v07.js`
+- `manifest.json`
+- `sw.js`
+- `assets/`
+
+No backend is required. The game remains a static GitHub Pages-compatible PWA with local persistent saves.

@@ -1,0 +1,376 @@
+{
+  "version": "0.5.2",
+  "brands": {
+    "gearmorph": {
+      "name": "GearMorph",
+      "role": "Transforming robots & vehicles"
+    },
+    "lumalife": {
+      "name": "Luma Life",
+      "role": "Fashion dolls, dreamhouses & lifestyle"
+    },
+    "starward": {
+      "name": "Starward Frontier",
+      "role": "Space saga figures, ships & playsets"
+    },
+    "pocketbeasts": {
+      "name": "Pocket Beasts",
+      "role": "Collectible creatures & battle sets"
+    },
+    "mythicforge": {
+      "name": "Mythic Forge",
+      "role": "Fantasy warriors, beasts & castles"
+    },
+    "nitrostreet": {
+      "name": "Nitro Street",
+      "role": "Die-cast cars, tracks & garages"
+    },
+    "littleworld": {
+      "name": "Little World",
+      "role": "Preschool vehicles, plush & playsets"
+    },
+    "ultraleague": {
+      "name": "Ultra League",
+      "role": "Superheroes, villains & vehicles"
+    }
+  },
+  "products": [
+    {
+      "id": "P001",
+      "brand": "gearmorph",
+      "name": "Inferno Prime",
+      "webp": "assets/products/P001.webp",
+      "source_svg": "assets/products/P001.svg"
+    },
+    {
+      "id": "P002",
+      "brand": "gearmorph",
+      "name": "Storm Talon",
+      "webp": "assets/products/P002.webp",
+      "source_svg": "assets/products/P002.svg"
+    },
+    {
+      "id": "P003",
+      "brand": "gearmorph",
+      "name": "Titan Hauler",
+      "webp": "assets/products/P003.webp",
+      "source_svg": "assets/products/P003.svg"
+    },
+    {
+      "id": "P004",
+      "brand": "gearmorph",
+      "name": "Volt Saber",
+      "webp": "assets/products/P004.webp",
+      "source_svg": "assets/products/P004.svg"
+    },
+    {
+      "id": "P005",
+      "brand": "gearmorph",
+      "name": "Shadow Convoy",
+      "webp": "assets/products/P005.webp",
+      "source_svg": "assets/products/P005.svg"
+    },
+    {
+      "id": "P006",
+      "brand": "gearmorph",
+      "name": "Neon Scout Duo",
+      "webp": "assets/products/P006.webp",
+      "source_svg": "assets/products/P006.svg"
+    },
+    {
+      "id": "P007",
+      "brand": "lumalife",
+      "name": "City Lights Luma",
+      "webp": "assets/products/P007.webp",
+      "source_svg": "assets/products/P007.svg"
+    },
+    {
+      "id": "P008",
+      "brand": "lumalife",
+      "name": "Dreamhouse Studio",
+      "webp": "assets/products/P008.webp",
+      "source_svg": "assets/products/P008.svg"
+    },
+    {
+      "id": "P009",
+      "brand": "lumalife",
+      "name": "Weekend Roadster",
+      "webp": "assets/products/P009.webp",
+      "source_svg": "assets/products/P009.svg"
+    },
+    {
+      "id": "P010",
+      "brand": "lumalife",
+      "name": "Starlight Wardrobe",
+      "webp": "assets/products/P010.webp",
+      "source_svg": "assets/products/P010.svg"
+    },
+    {
+      "id": "P011",
+      "brand": "lumalife",
+      "name": "Luma & Luna Twin Set",
+      "webp": "assets/products/P011.webp",
+      "source_svg": "assets/products/P011.svg"
+    },
+    {
+      "id": "P012",
+      "brand": "lumalife",
+      "name": "Beach Club Playset",
+      "webp": "assets/products/P012.webp",
+      "source_svg": "assets/products/P012.svg"
+    },
+    {
+      "id": "P013",
+      "brand": "starward",
+      "name": "Eclipse Fighter",
+      "webp": "assets/products/P013.webp",
+      "source_svg": "assets/products/P013.svg"
+    },
+    {
+      "id": "P014",
+      "brand": "starward",
+      "name": "Titan Cruiser",
+      "webp": "assets/products/P014.webp",
+      "source_svg": "assets/products/P014.svg"
+    },
+    {
+      "id": "P015",
+      "brand": "starward",
+      "name": "Nova Ranger Figure",
+      "webp": "assets/products/P015.webp",
+      "source_svg": "assets/products/P015.svg"
+    },
+    {
+      "id": "P016",
+      "brand": "starward",
+      "name": "Void Captain Deluxe",
+      "webp": "assets/products/P016.webp",
+      "source_svg": "assets/products/P016.svg"
+    },
+    {
+      "id": "P017",
+      "brand": "starward",
+      "name": "Outpost Seven Playset",
+      "webp": "assets/products/P017.webp",
+      "source_svg": "assets/products/P017.svg"
+    },
+    {
+      "id": "P018",
+      "brand": "starward",
+      "name": "Solar Speeder",
+      "webp": "assets/products/P018.webp",
+      "source_svg": "assets/products/P018.svg"
+    },
+    {
+      "id": "P019",
+      "brand": "pocketbeasts",
+      "name": "Emberling Starter",
+      "webp": "assets/products/P019.webp",
+      "source_svg": "assets/products/P019.svg"
+    },
+    {
+      "id": "P020",
+      "brand": "pocketbeasts",
+      "name": "Moonhorn Figure",
+      "webp": "assets/products/P020.webp",
+      "source_svg": "assets/products/P020.svg"
+    },
+    {
+      "id": "P021",
+      "brand": "pocketbeasts",
+      "name": "Mystery Nest Egg",
+      "webp": "assets/products/P021.webp",
+      "source_svg": "assets/products/P021.svg"
+    },
+    {
+      "id": "P022",
+      "brand": "pocketbeasts",
+      "name": "Crystal Drake Deluxe",
+      "webp": "assets/products/P022.webp",
+      "source_svg": "assets/products/P022.svg"
+    },
+    {
+      "id": "P023",
+      "brand": "pocketbeasts",
+      "name": "Forest Friends 5-Pack",
+      "webp": "assets/products/P023.webp",
+      "source_svg": "assets/products/P023.svg"
+    },
+    {
+      "id": "P024",
+      "brand": "pocketbeasts",
+      "name": "Battle Burrow Arena",
+      "webp": "assets/products/P024.webp",
+      "source_svg": "assets/products/P024.svg"
+    },
+    {
+      "id": "P025",
+      "brand": "mythicforge",
+      "name": "Dragon King Varr",
+      "webp": "assets/products/P025.webp",
+      "source_svg": "assets/products/P025.svg"
+    },
+    {
+      "id": "P026",
+      "brand": "mythicforge",
+      "name": "Castle Blackspire",
+      "webp": "assets/products/P026.webp",
+      "source_svg": "assets/products/P026.svg"
+    },
+    {
+      "id": "P027",
+      "brand": "mythicforge",
+      "name": "Wolf Knight Kael",
+      "webp": "assets/products/P027.webp",
+      "source_svg": "assets/products/P027.svg"
+    },
+    {
+      "id": "P028",
+      "brand": "mythicforge",
+      "name": "Frost Wyvern",
+      "webp": "assets/products/P028.webp",
+      "source_svg": "assets/products/P028.svg"
+    },
+    {
+      "id": "P029",
+      "brand": "mythicforge",
+      "name": "Siege Ram",
+      "webp": "assets/products/P029.webp",
+      "source_svg": "assets/products/P029.svg"
+    },
+    {
+      "id": "P030",
+      "brand": "mythicforge",
+      "name": "Runeblade Twin Pack",
+      "webp": "assets/products/P030.webp",
+      "source_svg": "assets/products/P030.svg"
+    },
+    {
+      "id": "P031",
+      "brand": "nitrostreet",
+      "name": "Hyper GT Twin Pack",
+      "webp": "assets/products/P031.webp",
+      "source_svg": "assets/products/P031.svg"
+    },
+    {
+      "id": "P032",
+      "brand": "nitrostreet",
+      "name": "Mega Loop Track",
+      "webp": "assets/products/P032.webp",
+      "source_svg": "assets/products/P032.svg"
+    },
+    {
+      "id": "P033",
+      "brand": "nitrostreet",
+      "name": "Street Kings 10-Pack",
+      "webp": "assets/products/P033.webp",
+      "source_svg": "assets/products/P033.svg"
+    },
+    {
+      "id": "P034",
+      "brand": "nitrostreet",
+      "name": "Turbo Hauler",
+      "webp": "assets/products/P034.webp",
+      "source_svg": "assets/products/P034.svg"
+    },
+    {
+      "id": "P035",
+      "brand": "nitrostreet",
+      "name": "Night Racer Limited",
+      "webp": "assets/products/P035.webp",
+      "source_svg": "assets/products/P035.svg"
+    },
+    {
+      "id": "P036",
+      "brand": "nitrostreet",
+      "name": "Drift City Garage",
+      "webp": "assets/products/P036.webp",
+      "source_svg": "assets/products/P036.svg"
+    },
+    {
+      "id": "P037",
+      "brand": "littleworld",
+      "name": "Happy Town Bus",
+      "webp": "assets/products/P037.webp",
+      "source_svg": "assets/products/P037.svg"
+    },
+    {
+      "id": "P038",
+      "brand": "littleworld",
+      "name": "Busy Builder Yard",
+      "webp": "assets/products/P038.webp",
+      "source_svg": "assets/products/P038.svg"
+    },
+    {
+      "id": "P039",
+      "brand": "littleworld",
+      "name": "Animal Friends Farm",
+      "webp": "assets/products/P039.webp",
+      "source_svg": "assets/products/P039.svg"
+    },
+    {
+      "id": "P040",
+      "brand": "littleworld",
+      "name": "Bedtime Bear",
+      "webp": "assets/products/P040.webp",
+      "source_svg": "assets/products/P040.svg"
+    },
+    {
+      "id": "P041",
+      "brand": "littleworld",
+      "name": "Rainbow Kitchen",
+      "webp": "assets/products/P041.webp",
+      "source_svg": "assets/products/P041.svg"
+    },
+    {
+      "id": "P042",
+      "brand": "littleworld",
+      "name": "My First Market",
+      "webp": "assets/products/P042.webp",
+      "source_svg": "assets/products/P042.svg"
+    },
+    {
+      "id": "P043",
+      "brand": "ultraleague",
+      "name": "Solar Sentinel",
+      "webp": "assets/products/P043.webp",
+      "source_svg": "assets/products/P043.svg"
+    },
+    {
+      "id": "P044",
+      "brand": "ultraleague",
+      "name": "Titan Woman Deluxe",
+      "webp": "assets/products/P044.webp",
+      "source_svg": "assets/products/P044.svg"
+    },
+    {
+      "id": "P045",
+      "brand": "ultraleague",
+      "name": "Shadow Spark Bike",
+      "webp": "assets/products/P045.webp",
+      "source_svg": "assets/products/P045.svg"
+    },
+    {
+      "id": "P046",
+      "brand": "ultraleague",
+      "name": "Ultra HQ Tower",
+      "webp": "assets/products/P046.webp",
+      "source_svg": "assets/products/P046.svg"
+    },
+    {
+      "id": "P047",
+      "brand": "ultraleague",
+      "name": "Velocity Kid",
+      "webp": "assets/products/P047.webp",
+      "source_svg": "assets/products/P047.svg"
+    },
+    {
+      "id": "P048",
+      "brand": "ultraleague",
+      "name": "Villains United 3-Pack",
+      "webp": "assets/products/P048.webp",
+      "source_svg": "assets/products/P048.svg"
+    }
+  ],
+  "notes": "Original fictional brands and product art for Toy Store Tycoon. Category counterparts only; no third-party logos or character likenesses."
+}

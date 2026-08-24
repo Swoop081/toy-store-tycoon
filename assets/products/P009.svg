@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="900" viewBox="0 0 720 900">
+    <defs>
+      <linearGradient id="packbg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF4FA3"/><stop offset="1" stop-color="#7C4DFF"/></linearGradient>
+      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".75"/><stop offset=".4" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".22"/></linearGradient>
+      <linearGradient id="plastic" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".92"/><stop offset="1" stop-color="#dbe5f3" stop-opacity=".76"/></linearGradient>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".38"/></filter>
+      <filter id="smallshadow"><feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000" flood-opacity=".32"/></filter>
+      <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="1"/></pattern>
+    </defs><rect width="720" height="900" fill="#0f1015" opacity="0"/>
+    <g filter="url(#shadow)"><rect x="48" y="38" width="624" height="824" rx="68" fill="url(#packbg)"/><rect x="105" y="210" width="510" height="456" rx="76" fill="url(#plastic)" stroke="#fff" stroke-opacity=".8" stroke-width="8"/></g><circle cx="578" cy="160" r="120" fill="#fff" opacity=".12"/><path d="M81 708q210-99 558 15" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="22"/>
+    <g font-family="Arial, Helvetica, sans-serif"><text x="72" y="112" fill="#fff" font-size="43" font-weight="900" letter-spacing="1">Luma Life</text>
+    <text x="72" y="150" fill="#fff" opacity=".82" font-size="16" font-weight="700" letter-spacing="2">DREAM IT • STYLE IT • LIVE IT</text>
+    <rect x="515" y="90" width="106" height="48" rx="24" fill="#0b0d12" fill-opacity=".72"/><text x="568" y="121" text-anchor="middle" fill="#fff" font-size="20" font-weight="900">6+</text></g>
+    <g transform="translate(0 82) scale(.88)" transform-origin="360 420"><g filter="url(#smallshadow)"><path d="M125 431q38-108 158-125h162q106 15 148 125l-15 92H141z" fill="#7C4DFF" stroke="#4b244c" stroke-width="14"/><path d="M274 314l65-73h118l81 87" fill="#aee8ff" stroke="#FFD85A" stroke-width="14"/><path d="M190 415h343" stroke="#FFD85A" stroke-width="16"/><circle cx="216" cy="527" r="58" fill="#26212c"/><circle cx="216" cy="527" r="30" fill="#FFD85A"/><circle cx="501" cy="527" r="58" fill="#26212c"/><circle cx="501" cy="527" r="30" fill="#FFD85A"/><path d="M336 275q25-53 65-53t64 53" fill="none" stroke="#6b3a54" stroke-width="20"/></g></g>
+    <path d="M123 228Q268 186 590 233" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="11" stroke-linecap="round"/>
+    <rect x="92" y="670" width="536" height="56" rx="28" fill="#0b0d12" fill-opacity=".84"/><text x="360" y="706" text-anchor="middle" fill="#fff" font-family="Arial" font-size="20" font-weight="900" letter-spacing="2">STYLE ROADSTER</text>
+    <g font-family="Arial, Helvetica, sans-serif"><text x="72" y="770" fill="#fff" font-size="34" font-weight="900"><tspan x="72" dy="0">WEEKEND ROADSTER</tspan></text><text x="72" y="842" fill="#fff" opacity=".78" font-size="15" font-weight="800" letter-spacing="2">CORE COLLECTION • #009 • SERIES 1</text></g>
+    <path d="M95 56L612 837" stroke="url(#shine)" stroke-width="24" stroke-linecap="round" opacity=".25"/>
+    </svg>
