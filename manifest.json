@@ -1,7 +1,7 @@
 {
   "name": "Toy Store Tycoon",
   "short_name": "Toy Tycoon",
-  "description": "A bright mobile toy retail tycoon game about trends, pricing, rivals and risky stock bets.",
+  "description": "A premium mobile toy retail tycoon game about trends, living toy franchises, collector markets, staff, customers, pricing, rival stores and risky stock bets.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,7 +9,15 @@
   "background_color": "#100d19",
   "theme_color": "#ff4f87",
   "icons": [
-    {"src":"assets/icons/icon-192.png","sizes":"192x192","type":"image/png"},
-    {"src":"assets/icons/icon-512.png","sizes":"512x512","type":"image/png"}
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

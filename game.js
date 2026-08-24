@@ -1,6 +1,6 @@
-const VERSION = '0.4.0';
-const SAVE_KEY = 'toyStoreTycoon.v0.4';
-const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
+const VERSION = '0.5.0';
+const SAVE_KEY = 'toyStoreTycoon.v0.5';
+const LEGACY_SAVE_KEYS = ['toyStoreTycoon.v0.4','toyStoreTycoon.v0.3','toyStoreTycoon.v0.2','toyStoreTycoon.v0.1'];
 
 const brands = {
   gearmorph:{name:'GearMorph',glyph:'🤖',grad:'linear-gradient(145deg,#12c2e9,#7b4dff 52%,#ff4f87)',category:'Transforming Mechs'},
@@ -79,30 +79,6 @@ const displayDefs={
 };
 const retailMonths=['July','August','September','October','November','December','January','February','March','April','May','June'];
 
-const staffDefs={
-  cashier:{name:'Cashiers',icon:'🧾',wage:145,hire:350,desc:'Serve checkout queues. More cashiers prevent abandoned baskets.'},
-  floor:{name:'Floor Staff',icon:'😊',wage:135,hire:300,desc:'Help shoppers, improve conversion and reduce shoplifting.'},
-  stock:{name:'Stockroom Crew',icon:'📦',wage:140,hire:325,desc:'Keep shelves full during busy trading days.'},
-  manager:{name:'Store Manager',icon:'📋',wage:230,hire:900,desc:'Boosts staff efficiency, satisfaction and store condition.'}
-};
-const customerTypes={
-  parent:{name:'Parents',icon:'👨‍👩‍👧',weight:30,price:.92,scarcity:.9,quality:1.18,basket:1.45},
-  kid:{name:'Kids',icon:'🧒',weight:22,price:.82,scarcity:1.0,quality:.95,basket:1.15},
-  collector:{name:'Collectors',icon:'💎',weight:14,price:1.25,scarcity:1.55,quality:1.08,basket:1.2},
-  bargain:{name:'Bargain Hunters',icon:'🏷️',weight:16,price:.62,scarcity:.75,quality:.9,basket:1.35},
-  gift:{name:'Gift Buyers',icon:'🎁',weight:12,price:.98,scarcity:1.0,quality:1.2,basket:1.7},
-  impulse:{name:'Impulse Shoppers',icon:'✨',weight:6,price:.9,scarcity:1.0,quality:.85,basket:2.0}
-};
-const facilityDefs={
-  checkout2:{name:'Second Checkout',icon:'🧾',cost:4200,desc:'Adds another register and raises queue capacity.'},
-  lighting:{name:'Premium Lighting',icon:'💡',cost:3100,desc:'Makes displays pop and improves shopper conversion.'},
-  collector:{name:'Collector Cabinet',icon:'💎',cost:4800,desc:'Boosts collector purchases and scarce-product appeal.'},
-  security:{name:'Security Cameras',icon:'📹',cost:3600,desc:'Cuts shoplifting losses significantly.'},
-  giftwrap:{name:'Gift-Wrapping Station',icon:'🎁',cost:2900,desc:'Adds paid gift wrap and lifts gift-buyer satisfaction.'},
-  demozone:{name:'Toy Demo Zone',icon:'🎮',cost:5200,desc:'Kids linger longer and impulse purchases increase.'},
-  biggerfloor:{name:'Expanded Shop Floor',icon:'🏬',cost:8500,desc:'Raises traffic ceiling and gives the store a flagship feel.'}
-};
-
 function freshState(){
   const inventory={};
   const starting=['P001','P007','P013','P019','P025','P031','P037','P043'];
@@ -128,17 +104,6 @@ function freshState(){
 }
 
 let state = loadState();
-// v0.4 bootstrap defaults must exist before the first render, including when
-// a v0.3 save is loaded before the deeper migration layer executes below.
-state.staff=state.staff||{cashier:1,floor:1,stock:1,manager:0};
-state.facilities=state.facilities||{};
-state.openHours=state.openHours||8;
-state.storeCondition=Number.isFinite(state.storeCondition)?state.storeCondition:92;
-state.satisfaction=Number.isFinite(state.satisfaction)?state.satisfaction:78;
-state.shrinkageTotal=state.shrinkageTotal||0;
-state.giftWrapRevenue=state.giftWrapRevenue||0;
-state.lastOps=state.lastOps||{queueLost:0,shrinkage:0,wages:0,avgBasket:0,conversion:0,stockouts:0,persona:{},served:0,items:0,giftWrap:0};
-Object.entries(state.inventory||{}).forEach(([id,inv])=>{ if(!Number.isFinite(inv.shelfQty)) inv.shelfQty=Math.min(inv.qty,7); });
 let currentFilter='all';
 let sheetQty=1;
 
@@ -860,138 +825,650 @@ function inventoryValue(){ return Object.entries(state.inventory).reduce((a,[id,
 
 /* ==========================================================================
    v0.4 — Store Operations + Customer Experience
-   Staff, queues, shop-floor stock, customer archetypes, baskets, satisfaction,
-   shrinkage, maintenance and visible facilities.
+   Staff, queues, baskets, shelf restocking, shrinkage, cleanliness and visible
+   store improvements. These declarations intentionally override v0.3 where
+   needed while preserving its market, supplier and rival systems.
    ========================================================================== */
-function ensureV04State(s){
-  s.staff=s.staff||{cashier:1,floor:1,stock:1,manager:0};
-  Object.keys(staffDefs).forEach(k=>{ if(!Number.isFinite(s.staff[k])) s.staff[k]=k==='manager'?0:1; });
-  s.facilities=s.facilities||{}; s.openHours=s.openHours||8; s.storeCondition=Number.isFinite(s.storeCondition)?s.storeCondition:92;
-  s.satisfaction=Number.isFinite(s.satisfaction)?s.satisfaction:78; s.shrinkageTotal=s.shrinkageTotal||0; s.giftWrapRevenue=s.giftWrapRevenue||0;
-  s.lastOps=s.lastOps||{queueLost:0,shrinkage:0,wages:0,avgBasket:0,conversion:0,stockouts:0,persona:{}};
-  Object.entries(s.inventory||{}).forEach(([id,inv])=>{ const p=getProduct(id); if(!p)return; if(!Number.isFinite(inv.shelfQty)) inv.shelfQty=Math.min(inv.qty,shelfCapacityFor(id)); });
+
+function v04StaffRoles(){
+  return {
+    cashier:{name:'Cashier',icon:'🧾',wage:145,checkout:34,service:4,restock:0,security:0,desc:'Keeps checkout queues moving.'},
+    floor:{name:'Floor Assistant',icon:'🙋',wage:128,checkout:4,service:12,restock:5,security:7,desc:'Helps shoppers, tidies displays and deters theft.'},
+    stock:{name:'Stockroom',icon:'📦',wage:136,checkout:0,service:2,restock:24,security:2,desc:'Gets deliveries onto shelves before demand is lost.'},
+    manager:{name:'Store Manager',icon:'🎧',wage:198,checkout:10,service:10,restock:10,security:5,desc:'Boosts the whole team and stabilises busy days.'}
+  };
+}
+function v04UpgradeDefs(){
+  return {
+    secondCheckout:{name:'Second Checkout',icon:'🧾',cost:4800,desc:'+42 transactions/day before queues bite.'},
+    lighting:{name:'Premium Lighting',icon:'💡',cost:3200,desc:'+6% traffic and a brighter premium store.'},
+    collectorCabinet:{name:'Collector Cabinet',icon:'💎',cost:4300,desc:'+28% collector appeal on scarce products.'},
+    demoZone:{name:'Demo Play Zone',icon:'🎮',cost:5600,desc:'+10% traffic; kids and impulse shoppers linger longer.'},
+    security:{name:'Security Cameras',icon:'📹',cost:3600,desc:'Cuts shoplifting and damaged-stock losses by 70%.'},
+    giftWrap:{name:'Gift Wrap Counter',icon:'🎁',cost:2400,desc:'Adds profitable gift wrap and lifts gift-buyer satisfaction.'},
+    biggerFloor:{name:'Expand Shop Floor',icon:'🏗️',cost:8800,desc:'+12% traffic, larger shelf targets and +2 staff capacity.'}
+  };
+}
+function v04CustomerTypes(){
+  return [
+    {id:'parent',name:'Parents',icon:'👩‍👦',weight:30,price:.82,quality:1.18,hype:.95,scarcity:.88,basket:1.6,service:1.15},
+    {id:'kid',name:'Kids',icon:'🧒',weight:18,price:.72,quality:.90,hype:1.30,scarcity:1.00,basket:1.35,service:.75},
+    {id:'collector',name:'Collectors',icon:'🧔',weight:15,price:1.05,quality:1.05,hype:1.05,scarcity:1.55,basket:1.45,service:.88},
+    {id:'bargain',name:'Bargain Hunters',icon:'🏷️',weight:14,price:1.35,quality:.80,hype:.72,scarcity:.65,basket:1.25,service:.70},
+    {id:'gift',name:'Gift Buyers',icon:'🎁',weight:18,price:.92,quality:1.16,hype:1.02,scarcity:.95,basket:2.05,service:1.18},
+    {id:'impulse',name:'Impulse Shoppers',icon:'✨',weight:5,price:.76,quality:.82,hype:1.18,scarcity:1.05,basket:1.85,service:.62}
+  ];
+}
+function v04StaffNames(){ return ['Mia','Noah','Sophie','Liam','Ruby','Jack','Ava','Leo','Zoe','Ethan','Chloe','Max','Isla','Oscar','Maya','Finn','Ella','Arlo','Lucy','Kai']; }
+function v04MakeStaff(role,idx=0){
+  const defs=v04StaffRoles(), d=defs[role], names=v04StaffNames();
+  return {id:`S${Date.now().toString(36)}${idx}${Math.floor(Math.random()*900+100)}`,name:names[(state?.staff?.nextId||idx)%names.length],role,skill:58+Math.floor(Math.random()*25),service:54+Math.floor(Math.random()*30),fatigue:8+Math.floor(Math.random()*9),days:0,wage:d.wage};
+}
+function v04DefaultOperations(){
+  return {hours:10,cleanliness:88,maintenance:90,security:0,secondCheckout:0,lighting:0,collectorCabinet:0,demoZone:0,giftWrap:0,biggerFloor:0,lastDeepCleanDay:0};
+}
+function v04DefaultCustomerStats(){
+  return {buyers:0,transactions:0,basketUnits:0,avgBasket:0,abandoned:0,queuePeak:0,satisfaction:78,giftWraps:0,shrinkUnits:0,shrinkCost:0,wages:0,maintenanceCost:0,grossProfit:0,restocked:0,stockoutMisses:0,types:{}};
+}
+function v04StaffCapacity(){ return 6 + (state.operations?.biggerFloor?2:0); }
+function v04HoursFactor(){ return state.operations.hours===8?.88:state.operations.hours===12?1.18:1; }
+function v04WageFactor(){ return state.operations.hours===8?.84:state.operations.hours===12?1.22:1; }
+function v04Team(){ return state.staff?.team||[]; }
+function v04RoleCount(role){ return v04Team().filter(s=>s.role===role).length; }
+function v04StaffPerf(staff){ return clamp((staff.skill||60)/70 * (1-(staff.fatigue||0)*.004),.55,1.4); }
+function v04ManagerBoost(){ return 1 + Math.min(.16,v04RoleCount('manager')*.08); }
+function v04CheckoutCapacity(){
+  const defs=v04StaffRoles(); let cap=34; // owner can always serve a few customers
+  v04Team().forEach(s=>{ cap += defs[s.role].checkout*v04StaffPerf(s); });
+  if(state.operations.secondCheckout) cap+=42;
+  return Math.round(cap*v04ManagerBoost());
+}
+function v04RestockCapacity(){
+  const defs=v04StaffRoles(); let cap=12;
+  v04Team().forEach(s=>{ cap += defs[s.role].restock*v04StaffPerf(s); });
+  return Math.round(cap*v04ManagerBoost());
+}
+function v04ServiceScore(){
+  const defs=v04StaffRoles(); let score=48+(state.upgrades.service||0)*7;
+  v04Team().forEach(s=>{ score += defs[s.role].service*v04StaffPerf(s); });
+  if(state.operations.giftWrap) score+=3;
+  return clamp(score,35,100);
+}
+function v04SecurityScore(){
+  const defs=v04StaffRoles(); let score=12;
+  v04Team().forEach(s=>{ score += defs[s.role].security*v04StaffPerf(s); });
+  if(state.operations.security) score+=48;
+  return clamp(score,0,100);
+}
+function v04ShelfTarget(id){
+  const place=state.placements?.[id]||'main';
+  let target=place==='window'?6:place==='feature'?7:place==='back'?4:8;
+  if(state.operations?.biggerFloor) target+=2;
+  return target;
+}
+function v04ShelfUnits(){ return Object.values(state.inventory).reduce((a,x)=>a+Math.min(x.qty||0,x.shelfQty||0),0); }
+function v04StockroomUnits(){ return Math.max(0,inventoryUsed()-v04ShelfUnits()); }
+function v04EnsureShelf(inv,id){ if(!Number.isFinite(inv.shelfQty)) inv.shelfQty=Math.min(inv.qty||0,v04ShelfTarget(id)); inv.shelfQty=clamp(inv.shelfQty,0,inv.qty||0); }
+function v04RestockShelves(){
+  let capacity=v04RestockCapacity(), moved=0;
+  const ids=Object.keys(state.inventory).filter(id=>(state.inventory[id]?.qty||0)>0).sort((a,b)=>placementFactor(b)-placementFactor(a)||state.market[b].hype-state.market[a].hype);
+  ids.forEach(id=>{
+    if(capacity<=0)return; const inv=state.inventory[id]; v04EnsureShelf(inv,id);
+    const need=Math.max(0,Math.min(v04ShelfTarget(id),inv.qty)-inv.shelfQty); const move=Math.min(need,capacity);
+    inv.shelfQty+=move; capacity-=move; moved+=move;
+  });
+  return moved;
+}
+function v04WeightedPick(items,scoreFn){
+  if(!items.length)return null; const weights=items.map(x=>Math.max(.001,scoreFn(x))), total=weights.reduce((a,b)=>a+b,0); let r=Math.random()*total;
+  for(let i=0;i<items.length;i++){ r-=weights[i]; if(r<=0)return items[i]; }
+  return items[items.length-1];
+}
+function v04PickCustomerType(){ return v04WeightedPick(v04CustomerTypes(),x=>x.weight); }
+function v04ProductScore(p,type){
+  const inv=state.inventory[p.id],m=state.market[p.id], life=lifecycleFor(p); if(!inv||inv.shelfQty<=0)return 0;
+  const priceRatio=inv.price/p.rrp, discount=Math.max(0,1-priceRatio), premium=Math.max(0,priceRatio-1);
+  let priceScore=(1.10 - Math.max(0,priceRatio-.85)*type.price*.62 + discount*type.price*.45 - premium*type.price*.18);
+  if(type.id==='collector' && p.scarcity>70) priceScore+=premium*.22;
+  if(type.id==='bargain') priceScore+=discount*1.2;
+  let score=(m.hype/100)*type.hype*1.8+(p.quality/100)*type.quality*.9+(p.scarcity/100)*type.scarcity*.55;
+  score*=Math.max(.12,priceScore)*placementFactor(p.id)*displayFactor(p)*life.factor;
+  if(type.id==='collector'&&state.operations.collectorCabinet)score*=1.28;
+  if(type.id==='kid'&&state.operations.demoZone)score*=1.22;
+  if(type.id==='impulse'&&state.operations.demoZone)score*=1.15;
+  return Math.max(.02,score);
+}
+function v04PurchaseChance(type,p){
+  const inv=state.inventory[p.id], score=v04ProductScore(p,type), priceRatio=inv.price/p.rrp;
+  let chance=.38+Math.min(.40,score*.12)+(v04ServiceScore()-55)*.002;
+  if(priceRatio>1.35 && state.market[p.id].hype<82)chance-=.17;
+  if(type.id==='bargain'&&priceRatio<.9)chance+=.18;
+  if(type.id==='collector'&&p.scarcity>78)chance+=.12;
+  return clamp(chance,.10,.92);
+}
+function v04MaintenanceCost(){ return Math.round(48 + state.operations.hours*7 + Object.keys(v04UpgradeDefs()).filter(k=>state.operations[k]).length*9); }
+function v04DailyWages(){ return roundMoney(v04Team().reduce((a,s)=>a+(s.wage||v04StaffRoles()[s.role].wage)*v04WageFactor(),0)); }
+function v04UpdateStaffAfterDay(){
+  const manager=v04RoleCount('manager')>0;
+  v04Team().forEach(s=>{
+    const fatigueGain=state.operations.hours===12?12:state.operations.hours===10?7:3;
+    s.fatigue=clamp((s.fatigue||0)+fatigueGain-(manager?5:3),0,95);
+    s.days=(s.days||0)+1;
+    if(s.days%6===0)s.skill=clamp((s.skill||60)+1,45,95);
+    if(s.days%8===0)s.service=clamp((s.service||60)+1,45,95);
+  });
+}
+function v04ShopVisualFlags(){
+  const o=state.operations||{}; return [o.secondCheckout?'2 CHECKOUTS':null,o.lighting?'PREMIUM LIGHTING':null,o.collectorCabinet?'COLLECTOR CABINET':null,o.demoZone?'DEMO ZONE':null,o.security?'SECURITY':null,o.giftWrap?'GIFT WRAP':null,o.biggerFloor?'EXPANDED FLOOR':null].filter(Boolean);
+}
+
+function migrateState(s){
+  s.version=VERSION; s.tab=s.tab||'store'; s.sound=s.sound!==false;
+  s.preorders=s.preorders||{}; s.placements=s.placements||{}; s.displays=s.displays||{};
+  s.suppliers=s.suppliers||Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}]));
+  Object.values(supplierTemplates).forEach(x=>{ if(!s.suppliers[x.id])s.suppliers[x.id]={relationship:x.baseRel,totalSpend:0,orders:0}; });
+  s.operations={...v04DefaultOperations(),...(s.operations||{})};
+  s.staff=s.staff||{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]};
+  s.staff.team=Array.isArray(s.staff.team)?s.staff.team:[]; s.staff.nextId=Number.isFinite(s.staff.nextId)?s.staff.nextId:s.staff.team.length+1;
+  s.customerStats={...v04DefaultCustomerStats(),...(s.customerStats||{})};
+  products.forEach((p,idx)=>{
+    if(!s.market[p.id])s.market[p.id]={hype:p.baseDemand,trend:0,buzz:'steady'};
+    if(!Number.isFinite(s.market[p.id].potential))s.market[p.id].potential=latentPotential(p);
+    if(s.inventory[p.id]){
+      if(!Number.isFinite(s.inventory[p.id].avgCost))s.inventory[p.id].avgCost=p.wholesale;
+      if(!s.placements[p.id])s.placements[p.id]=(idx%7===0?'window':idx%5===0?'feature':'main');
+      if(!Number.isFinite(s.inventory[p.id].shelfQty))s.inventory[p.id].shelfQty=Math.min(s.inventory[p.id].qty||0,(s.placements[p.id]==='window'?6:s.placements[p.id]==='feature'?7:8));
+      s.inventory[p.id].shelfQty=clamp(s.inventory[p.id].shelfQty,0,s.inventory[p.id].qty||0);
+    }
+  });
+  rivalTemplates.forEach((r,ri)=>{ const rs=s.rivals[r.id]; if(!rs)return; rs.inventory=rs.inventory||{}; rs.cash=Number.isFinite(rs.cash)?rs.cash:70000+ri*18000; rs.lastSales=rs.lastSales||0; rs.pressure=rs.pressure||0; });
+  s.lastSummary=s.lastSummary||null; s.reputation=Number.isFinite(s.reputation)?s.reputation:55;
   return s;
 }
-const _v03MigrateState=migrateState;
-migrateState=function(s){ return ensureV04State(_v03MigrateState(s)); };
-const _v03FreshState=freshState;
-freshState=function(){ return ensureV04State(_v03FreshState()); };
-state=ensureV04State(state);
-function shelfCapacityFor(id){
-  const place=state?.placements?.[id]||'main';
-  return place==='window'?8:place==='feature'?10:place==='back'?5:7;
+function freshState(){
+  const inventory={},placements={}; const starting=['P001','P007','P013','P019','P025','P031','P037','P043'];
+  starting.forEach((id,idx)=>{ const p=getProduct(id),qty=8+(idx%4)*2; inventory[id]={qty,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:p.wholesale,shelfQty:Math.min(qty,idx<2?6:idx<4?7:8)}; placements[id]=idx<2?'window':idx<4?'feature':'main'; });
+  const market={}; products.forEach((p,idx)=>market[p.id]={hype:clamp(p.baseDemand+((idx*13)%19)-9,20,96),trend:((idx%5)-2),buzz:'steady',potential:latentPotential(p)});
+  const rivals={}; rivalTemplates.forEach((r,ri)=>{ const prices={},rinv={}; products.forEach((p,idx)=>{ prices[p.id]=roundMoney(p.rrp*(r.pricing+((((idx+ri*2)%9)-4)/100))); if(idx%11===ri)rinv[p.id]=4+((idx+ri*3)%10); }); rivals[r.id]={cash:70000+ri*18000,rep:r.rep,share:17+ri*2,prices,inventory:rinv,lastSales:0,pressure:0,activity:'Watching the market.'}; });
+  return {version:VERSION,day:1,cash:25000,todaySales:0,todayProfit:0,rating:4.2,reputation:55,customersToday:0,totalRevenue:0,totalProfit:0,inventory,market,rivals,supplierStock:Object.fromEntries(products.map(p=>[p.id,p.supplierStock])),upgrades:{stockroom:0,marketing:0,service:0,analytics:0},marketShare:18,lastEvent:'Grand Opening',eventLog:['Day 1: Your independent toy shop opened.'],chatter:[],sound:true,tab:'store',tutorialShown:false,orderCount:0,preorders:{},placements,displays:{},suppliers:Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}])),lastSummary:null,operations:v04DefaultOperations(),staff:{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]},customerStats:v04DefaultCustomerStats()};
 }
-function staffEfficiency(){ return 1+(state.staff.manager||0)*.12; }
-function checkoutLanes(){ return 1+(state.facilities.checkout2?1:0); }
-function checkoutCapacity(){ return Math.round(checkoutLanes()*Math.max(1,state.staff.cashier||0)*(34+(state.facilities.lighting?2:0))*staffEfficiency()*(state.openHours/8)); }
-function stockerCapacity(){ return Math.round((state.staff.stock||0)*42*staffEfficiency()); }
-function payrollCost(){ return Object.entries(staffDefs).reduce((a,[k,d])=>a+(state.staff[k]||0)*d.wage*(state.openHours/8),0); }
-function trafficCeiling(){ return state.facilities.biggerfloor?190:135; }
-function customerTypePick(){
-  const entries=Object.entries(customerTypes), total=entries.reduce((a,[,x])=>a+x.weight,0); let roll=Math.random()*total;
-  for(const [k,x] of entries){ roll-=x.weight; if(roll<=0)return k; } return 'parent';
+function loadState(){
+  try{
+    for(const key of [SAVE_KEY,...LEGACY_SAVE_KEYS]){
+      const raw=localStorage.getItem(key); if(!raw)continue; const s=JSON.parse(raw);
+      if(s&&s.inventory&&s.market&&s.rivals){ const m=migrateState(s); localStorage.setItem(SAVE_KEY,JSON.stringify(m)); return m; }
+    }
+  }catch(e){}
+  return freshState();
 }
-function operatingHealth(){
-  const staffNeed=Math.max(1,(state.customersToday||60)/55), floorCover=(state.staff.floor||0)/staffNeed;
-  return clamp((state.storeCondition*.38)+(state.satisfaction*.38)+(state.rating/5*100*.24)+Math.min(8,floorCover*4),0,100);
-}
-function facilityBadges(){
-  return Object.entries(state.facilities).filter(([,v])=>v).map(([id])=>`<span>${facilityDefs[id]?.icon||'✓'} ${facilityDefs[id]?.name||id}</span>`).join('');
-}
+
 function renderStoreWorld(owned,chatter,hottest){
-  const shelf=owned.slice(0,6), fallback=products.filter(p=>p.launchDay<=state.day).slice(0,6), stock=shelf.length?shelf:fallback;
-  const shopperCount=clamp(Math.round((state.lastOps?.served||state.customersToday||48)/22),3,7);
-  const shoppers=Array.from({length:shopperCount},(_,i)=>{ const bubble=i<2&&chatter[i]?`<div class="shopper-bubble">${chatter[i].text}</div>`:''; return `<div class="shopper shopper-${i+1}">${bubble}<i class="shopper-head"></i><i class="shopper-body"></i><i class="shopper-arm left"></i><i class="shopper-arm right"></i><i class="shopper-leg left"></i><i class="shopper-leg right"></i></div>`; }).join('');
-  const queueDots=Math.min(5,Math.max(1,Math.round((state.lastOps?.queueLost||0)/5)+1));
-  return `<div class="store-world ${state.facilities.lighting?'facility-lighting':''} ${state.facilities.biggerfloor?'facility-expanded':''}">
-    <div class="store-ceiling"><i></i><i></i><i></i>${state.facilities.security?'<b class="security-camera">📹</b>':''}</div>
-    <div class="store-back-wall"><div class="store-logo-sign"><span>TOY</span><b>STORE</b><small>TYCOON</small></div><div class="launch-poster" style="${brandStyle(hottest)}" onclick="openBuySheet('${hottest.id}')"><span>HOT DROP</span>${packageArt(hottest,true)}<strong>${hottest.name}</strong></div><div class="service-sign">⭐ ${state.rating.toFixed(1)}<small>${Math.round(state.satisfaction)}% HAPPY</small></div></div>
-    <div class="store-floor">
-      <div class="shelf-wall shelf-left">${stock.slice(0,3).map(p=>{const inv=state.inventory[p.id],q=inv?.shelfQty||0;return `<div class="shelf-product ${q<=1?'shelf-empty':''}" style="${brandStyle(p)}" onclick="${inv?`openPriceSheet('${p.id}')`:`openBuySheet('${p.id}')`}">${q?packageArt(p,true):'<div class="empty-hook">SOLD<br>OUT</div>'}<span>${q} shelf</span></div>`}).join('')}<div class="shelf-plank"></div></div>
-      <div class="shelf-wall shelf-right">${stock.slice(3,6).map(p=>{const inv=state.inventory[p.id],q=inv?.shelfQty||0;return `<div class="shelf-product ${q<=1?'shelf-empty':''}" style="${brandStyle(p)}" onclick="${inv?`openPriceSheet('${p.id}')`:`openBuySheet('${p.id}')`}">${q?packageArt(p,true):'<div class="empty-hook">SOLD<br>OUT</div>'}<span>${q} shelf</span></div>`}).join('')}<div class="shelf-plank"></div></div>
-      ${state.facilities.collector?'<div class="collector-cabinet">💎<small>COLLECTORS</small></div>':''}
-      ${state.facilities.demozone?'<div class="demo-zone">🎮<small>TRY ME!</small></div>':''}
-      ${state.facilities.giftwrap?'<div class="gift-wrap-station">🎁<small>GIFT WRAP</small></div>':''}
-      <div class="checkout ${checkoutLanes()>1?'checkout-double':''}"><div class="register">▰</div>${checkoutLanes()>1?'<div class="register second">▰</div>':''}<div class="counter-sign">CHECKOUT</div><div class="shopping-bag">T</div>${Array.from({length:queueDots},(_,i)=>`<i class="queue-dot q${i}"></i>`).join('')}</div>
-      <div class="delivery-cart"><div>📦</div><span>${inventoryUsed()} total</span></div>${shoppers}
-    </div><div class="store-glow"></div></div>`;
+  const shelf=owned.slice(0,6),fallback=products.filter(p=>p.launchDay<=state.day).slice(0,6),stock=shelf.length?shelf:fallback;
+  const stats=state.customerStats||v04DefaultCustomerStats(), shopperCount=clamp(Math.round((state.customersToday||42)/20),3,7);
+  const shoppers=Array.from({length:shopperCount},(_,i)=>{ const bubble=i<2&&chatter[i]?`<div class="shopper-bubble">${chatter[i].text}</div>`:''; return `<div class="shopper shopper-${(i%6)+1}">${bubble}<i class="shopper-head"></i><i class="shopper-body"></i><i class="shopper-arm left"></i><i class="shopper-arm right"></i><i class="shopper-leg left"></i><i class="shopper-leg right"></i></div>`; }).join('');
+  const visual=v04ShopVisualFlags();
+  return `<div class="store-world v04-world ${state.operations.lighting?'premium-lit':''}">
+    <div class="store-ceiling"><i></i><i></i><i></i>${state.operations.lighting?'<i></i><i></i>':''}</div>
+    <div class="store-back-wall"><div class="store-logo-sign"><span>TOY</span><b>STORE</b><small>TYCOON</small></div><div class="launch-poster" style="${brandStyle(hottest)}" onclick="openBuySheet('${hottest.id}')"><span>HOT DROP</span>${packageArt(hottest,true)}<strong>${hottest.name}</strong></div><div class="service-sign">😊 ${Math.round(stats.satisfaction||78)}<small>SATISFACTION</small></div></div>
+    <div class="store-floor ${state.operations.biggerFloor?'expanded-floor':''}">
+      <div class="shelf-wall shelf-left">${stock.slice(0,3).map(p=>{const inv=state.inventory[p.id],q=inv?.shelfQty||0,total=inv?.qty||0,empty=total>0&&q===0;return `<div class="shelf-product ${empty?'shelf-empty':''}" style="${brandStyle(p)}" onclick="${total?`openPriceSheet('${p.id}')`:`openBuySheet('${p.id}')`}">${q?packageArt(p,true):'<div class="empty-facing">SOLD<br>THROUGH</div>'}<span>${q} shelf / ${total}</span></div>`}).join('')}<div class="shelf-plank"></div></div>
+      <div class="shelf-wall shelf-right">${stock.slice(3,6).map(p=>{const inv=state.inventory[p.id],q=inv?.shelfQty||0,total=inv?.qty||0,empty=total>0&&q===0;return `<div class="shelf-product ${empty?'shelf-empty':''}" style="${brandStyle(p)}" onclick="${total?`openPriceSheet('${p.id}')`:`openBuySheet('${p.id}')`}">${q?packageArt(p,true):'<div class="empty-facing">RESTOCK<br>NEEDED</div>'}<span>${q} shelf / ${total}</span></div>`}).join('')}<div class="shelf-plank"></div></div>
+      ${state.operations.collectorCabinet?'<div class="collector-cabinet">💎<small>COLLECTOR</small></div>':''}
+      ${state.operations.demoZone?'<div class="demo-zone">🎮<small>TRY ME</small></div>':''}
+      ${state.operations.giftWrap?'<div class="gift-counter">🎁<small>WRAP</small></div>':''}
+      ${state.operations.security?'<div class="security-cam">📹</div>':''}
+      <div class="checkout ${state.operations.secondCheckout?'checkout-double':''}"><div class="register">▰</div>${state.operations.secondCheckout?'<div class="register second">▰</div>':''}<div class="counter-sign">CHECKOUT</div><div class="shopping-bag">T</div></div>
+      <div class="delivery-cart"><div>📦</div><span>${v04StockroomUnits()} stockroom</span></div>${shoppers}
+    </div><div class="store-glow"></div>
+    ${visual.length?`<div class="world-upgrades">${visual.slice(0,4).map(x=>`<span>${x}</span>`).join('')}</div>`:''}
+  </div>`;
 }
-function operationsPanel(){
-  const o=state.lastOps||{}, wages=payrollCost(), cond=Math.round(state.storeCondition), sat=Math.round(state.satisfaction);
-  return `<section class="section"><div class="section-head"><div><h2>🏬 Store Operations</h2><p>The floor now affects what actually reaches the till.</p></div><button onclick="switchTab('empire')">Manage</button></div>
-  <div class="ops-grid"><div class="ops-card"><span>😊 SATISFACTION</span><b>${sat}%</b><div class="mini-meter"><i style="width:${sat}%"></i></div></div><div class="ops-card"><span>🧹 CONDITION</span><b>${cond}%</b><div class="mini-meter"><i style="width:${cond}%"></i></div></div><div class="ops-card"><span>🧾 CHECKOUT</span><b>${checkoutCapacity()}</b><small>basket capacity/day</small></div><div class="ops-card"><span>👥 PAYROLL</span><b>${money(wages)}</b><small>per trading day</small></div></div>
-  ${o.queueLost?`<div class="operation-alert warn">⚠️ <b>${o.queueLost} baskets abandoned</b> because checkout queues were too long last day.</div>`:''}
-  ${o.stockouts?`<div class="operation-alert">📦 <b>${o.stockouts} shelf stockouts</b> restricted sales. Add stockroom crew or move more stock onto shelves.</div>`:''}
-  ${facilityBadges()?`<div class="facility-badges">${facilityBadges()}</div>`:''}</section>`;
+
+function v04OperationsPanel(){
+  const stats=state.customerStats||v04DefaultCustomerStats(), team=v04Team();
+  return `<div class="ops-dashboard"><div class="ops-top"><div><span class="kicker">STORE OPERATIONS</span><h3>${state.operations.hours}-hour trading day</h3><p>${team.length}/${v04StaffCapacity()} staff · ${v04CheckoutCapacity()} checkout capacity · ${v04RestockCapacity()} restock units/day</p></div><button class="secondary-btn compact-btn" onclick="openHoursSheet()">HOURS</button></div><div class="ops-meter-grid"><div><span>😊 SATISFACTION</span><b>${Math.round(stats.satisfaction||78)}%</b><i><em style="width:${stats.satisfaction||78}%"></em></i></div><div><span>✨ CLEANLINESS</span><b>${Math.round(state.operations.cleanliness)}%</b><i><em style="width:${state.operations.cleanliness}%"></em></i></div><div><span>🧾 QUEUE CAPACITY</span><b>${v04CheckoutCapacity()}</b><small>${stats.abandoned||0} abandoned last day</small></div><div><span>📦 SHELF STOCK</span><b>${v04ShelfUnits()}</b><small>${v04StockroomUnits()} waiting in stockroom</small></div></div><div class="ops-actions"><button onclick="openStaffSheet()">👥 STAFF</button><button onclick="deepCleanStore()">🧹 DEEP CLEAN</button><button onclick="openStoreUpgrades()">🏗️ SHOP UPGRADES</button></div></div>`;
 }
 function renderStore(){
-  const hottest=products.filter(p=>p.launchDay<=state.day+5).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0], owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).map(getProduct), front=[...owned].sort((a,b)=>(placementFactor(b.id)*state.market[b.id].hype)-(placementFactor(a.id)*state.market[a.id].hype)).slice(0,6), chatter=getChatter(), preorderCount=preorderUnits();
-  screen.innerHTML=`<section class="store-world-wrap">${renderStoreWorld(front,chatter,hottest)}<div class="store-command-card"><div><span class="kicker">${gameDate().label.toUpperCase()} · ${seasonName()}</span><h2>${state.lastSummary?'Your team is ready for another day.':'Your first store is ready to trade.'}</h2><p>${state.lastSummary?`${state.lastSummary.customers} visitors · ${money(state.lastSummary.sales)} sales last day.`:'Keep shelves full, queues moving and customers happy.'}</p></div><button class="primary-btn next-day-btn" onclick="endDay()">TRADE TODAY <b>→</b></button></div></section>
-  <section class="section">${calendarBanner()}</section>${operationsPanel()}
-  ${preorderCount?`<section class="section"><div class="preorder-strip" onclick="switchTab('market')"><span>🚚</span><div><b>${preorderCount} pre-order units committed</b><small>Cash is tied up · deliveries arrive on launch day.</small></div><strong>VIEW →</strong></div></section>`:''}
-  <section class="section"><div class="section-head"><div><h2>💬 Customer Intelligence</h2><p>Real shoppers are your earliest market research.</p></div></div>${chatter.map(c=>`<div class="chatter"><span>${c.avatar}</span><div><b>“${c.text}”</b><small>${c.note}</small></div></div>`).join('')}</section>
-  <section class="section"><div class="section-head"><div><h2>🔥 Hot on Your Shelves</h2><p>Tap a toy to adjust price and merchandising.</p></div><button onclick="switchTab('products')">All stock</button></div><div class="rail">${front.length?front.map(p=>miniProductCard(p,'inventory')).join(''):'<div class="empty">Order stock from the Market.</div>'}</div></section>`;
+  const hottest=products.filter(p=>p.launchDay<=state.day+5).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0];
+  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).map(getProduct), front=[...owned].sort((a,b)=>(placementFactor(b.id)*state.market[b.id].hype)-(placementFactor(a.id)*state.market[a.id].hype)).slice(0,6), low=owned.filter(p=>(state.inventory[p.id].shelfQty||0)<=1), chatter=getChatter(), preorderCount=preorderUnits(), cs=state.customerStats||v04DefaultCustomerStats();
+  screen.innerHTML=`<section class="store-world-wrap">${renderStoreWorld(front,chatter,hottest)}<div class="store-command-card"><div><span class="kicker">${gameDate().label.toUpperCase()} · ${seasonName()}</span><h2>${state.lastSummary?'Set the floor for today.':'Your doors are ready to open.'}</h2><p>${state.lastSummary?`${state.lastSummary.customers} visitors · ${state.lastSummary.transactions||0} baskets · ${money(state.lastSummary.sales)} sales last day.`:'Staff, shelf stock and checkout capacity now directly affect every sale.'}</p></div><button class="primary-btn next-day-btn" onclick="endDay()">OPEN FOR ${state.operations.hours}H <b>→</b></button></div></section>
+  <section class="section">${v04OperationsPanel()}</section>
+  <section class="section">${calendarBanner()}</section>
+  ${preorderCount?`<section class="section"><div class="preorder-strip" onclick="switchTab('market')"><span>🚚</span><div><b>${preorderCount} pre-order units committed</b><small>Cash is tied up · deliveries land in the stockroom on launch day.</small></div><strong>VIEW →</strong></div></section>`:''}
+  <section class="section"><div class="section-head"><div><h2>🔥 Trend Alert</h2><p>${lifecycleFor(hottest).icon} ${lifecycleFor(hottest).name} · ${supplierFor(hottest).name}</p></div><button onclick="switchTab('market')">Market</button></div><div class="trend-feature" style="${brandStyle(hottest)}" onclick="openBuySheet('${hottest.id}')"><div class="trend-copy"><span class="kicker">${hypeLabel(state.market[hottest.id].hype)} · ${getBrand(hottest.brand).name}</span><strong>${hottest.name}</strong><p>Buzz is ${state.market[hottest.id].trend>=0?'climbing':'cooling'} · ${state.supplierStock[hottest.id]} supplier units left.</p><div class="trend-price"><span>${hottest.launchDay>state.day?'Pre-order cost':'Wholesale'}</span><b>${money(effectiveWholesale(hottest))}</b></div></div><div class="trend-pack">${packageArt(hottest,true)}</div></div></section>
+  <section class="section"><div class="section-head"><div><h2>Customer Mix</h2><p>Different shoppers value price, hype, quality and scarcity differently.</p></div></div><div class="customer-mix">${v04CustomerTypes().map(t=>`<div><span>${t.icon}</span><b>${t.name}</b><small>${cs.types?.[t.id]||0} last day</small></div>`).join('')}</div></section>
+  <section class="section"><div class="section-head"><div><h2>Customer Buzz</h2><p>Listen for real demand signals — and occasional nonsense.</p></div></div>${chatter.map(c=>`<div class="chatter premium-chatter"><div class="avatar">${c.avatar}</div><div><p>“${c.text}”</p><small>${c.note}</small></div><span class="buzz-wave">〰</span></div>`).join('')}</section>
+  <section class="section"><div class="grid2"><div class="action-card accent visual-action" onclick="switchTab('market')"><div class="action-orb">📦</div><h3>Buy & Pre-order</h3><p>${inventoryUsed()} owned · ${preorderCount} incoming.</p></div><div class="action-card ${low.length?'warn':''} visual-action" onclick="switchTab('products')"><div class="action-orb">🪟</div><h3>Restock & Merchandise</h3><p>${low.length} shelf facings critically low.</p></div><div class="action-card visual-action" onclick="openStaffSheet()"><div class="action-orb">👥</div><h3>Team</h3><p>${v04Team().length} staff · ${money(v04DailyWages())} estimated wages.</p></div><div class="action-card visual-action" onclick="switchTab('rivals')"><div class="action-orb">⚔️</div><h3>Rival Watch</h3><p>${state.rivals.mega.activity}</p></div></div></section>`;
 }
-function staffCard(k){ const d=staffDefs[k], count=state.staff[k]||0; return `<div class="staff-card"><div><span class="staff-icon">${d.icon}</span><h3>${d.name} · ${count}</h3><p>${d.desc}</p><small>${money(d.wage)}/day each</small></div><div class="staff-controls"><button onclick="changeStaff('${k}',-1)" ${count<=(k==='manager'?0:1)?'disabled':''}>−</button><b>${count}</b><button onclick="changeStaff('${k}',1)">+</button></div></div>`; }
-function facilityCard(id){ const d=facilityDefs[id], owned=!!state.facilities[id]; return `<div class="upgrade-card"><div><h3>${d.icon} ${d.name}</h3><p>${d.desc}</p></div><button class="${owned?'secondary-btn':'primary-btn'}" ${owned?'disabled':''} onclick="buyFacility('${id}')">${owned?'INSTALLED':money(d.cost)}</button></div>`; }
-function renderEmpire(){
-  const net=state.cash+inventoryValue(), progress=clamp(net/50000*100,0,100);
-  screen.innerHTML=`<section class="empire-hero"><div class="kicker">YOUR COMPANY · STORE #1</div><h2>Run the floor like a retailer.</h2><p>Market instincts get stock through the door. Operations turn that stock into loyal customers and profit.</p><div class="divider"></div><div class="metrics"><div class="metric"><span>Net Worth</span><strong>${money(net)}</strong></div><div class="metric"><span>Satisfaction</span><strong>${Math.round(state.satisfaction)}%</strong></div><div class="metric"><span>Market Share</span><strong>${state.marketShare.toFixed(1)}%</strong></div></div><div class="field-label">Next milestone · $50,000</div><div class="progress"><span style="width:${progress}%"></span></div></section>
-  <section class="section"><div class="section-head"><div><h2>👥 Your Team</h2><p>Daily wages are deducted after every trading day.</p></div></div>${Object.keys(staffDefs).map(staffCard).join('')}</section>
-  <section class="section"><div class="section-head"><div><h2>🕒 Opening Hours</h2><p>Longer days create more traffic but also increase wages and wear.</p></div></div><div class="hours-picker">${[8,10,12].map(h=>`<button class="${state.openHours===h?'active':''}" onclick="setOpenHours(${h})">${h} HOURS</button>`).join('')}</div></section>
-  <section class="section"><div class="section-head"><div><h2>🏗️ Visible Store Improvements</h2><p>These upgrades alter both simulation performance and the shop scene.</p></div></div>${Object.keys(facilityDefs).map(facilityCard).join('')}</section>
-  <section class="section"><div class="section-head"><div><h2>🧹 Maintenance</h2><p>Condition ${Math.round(state.storeCondition)}% · poor condition reduces satisfaction and traffic.</p></div><button onclick="performMaintenance()">SERVICE · $450</button></div><div class="mini-meter large"><i style="width:${state.storeCondition}%"></i></div></section>
-  <section class="section"><div class="section-head"><div><h2>Existing Business Upgrades</h2></div></div>${upgrades.map(u=>upgradeCard(u)).join('')}</section>
-  <section class="section"><button class="secondary-btn wide" onclick="showLog()">VIEW EVENT HISTORY</button><button class="danger-btn wide" style="margin-top:9px" onclick="resetGame()">RESET LOCAL SAVE</button><p class="small-note">v${VERSION} · Save data is stored locally in this browser on this device.</p></section>`;
+
+function inventoryRow(p){
+  const inv=state.inventory[p.id],m=state.market[p.id],margin=inv.price-(inv.avgCost||p.wholesale),pl=shelfPlacements[state.placements[p.id]||'main'],life=lifecycleFor(p); v04EnsureShelf(inv,p.id);
+  const stockroom=Math.max(0,inv.qty-inv.shelfQty), shelfPct=Math.round(Math.min(1,inv.shelfQty/Math.max(1,v04ShelfTarget(p.id)))*100);
+  return `<div class="inventory-row v04-inventory" style="${brandStyle(p)}" onclick="openPriceSheet('${p.id}')"><div class="inventory-thumb">${packageArt(p,true)}</div><div><div class="inventory-tags"><span>${pl.icon} ${pl.name}</span><span>${life.icon} ${life.name}</span></div><h3>${p.name}</h3><p>${getBrand(p.brand).name} · ${heat(m.hype)} ${hypeLabel(m.hype)}</p><div class="shelf-mini"><i><em style="width:${shelfPct}%"></em></i><small>${inv.shelfQty} shelf · ${stockroom} stockroom</small></div><p><strong>${money(inv.price)}</strong> · <span class="${margin>=0?'profit':'loss'}">${margin>=0?'+':''}${money(margin)}/unit</span> · ${inv.soldToday||0} sold</p></div><div class="stock-pill ${inv.shelfQty===0&&inv.qty>0?'hot':''}">${inv.qty} total</div></div>`;
 }
-function changeStaff(k,delta){ const min=k==='manager'?0:1, next=clamp((state.staff[k]||0)+delta,min,5); if(next===state.staff[k])return; if(delta>0&&state.cash<staffDefs[k].hire)return toast('Not enough cash to hire'); if(delta>0){state.cash-=staffDefs[k].hire; state.eventLog.unshift(`Day ${state.day}: Hired an additional ${staffDefs[k].name.toLowerCase()}.`);} state.staff[k]=next; saveState(); renderEmpire(); toast(delta>0?'Staff member hired':'Staff member released'); }
-function setOpenHours(h){ state.openHours=h; saveState(); renderEmpire(); toast(`${h}-hour trading day selected`); }
-function buyFacility(id){ const d=facilityDefs[id]; if(state.facilities[id])return; if(state.cash<d.cost)return toast('Not enough cash'); state.cash-=d.cost; state.facilities[id]=true; if(id==='biggerfloor')state.reputation=clamp(state.reputation+4,0,100); state.eventLog.unshift(`Day ${state.day}: Installed ${d.name}.`); saveState(); renderEmpire(); toast(`${d.name} installed`); }
-function performMaintenance(){ if(state.cash<450)return toast('Not enough cash'); state.cash-=450; state.storeCondition=clamp(state.storeCondition+18,0,100); state.eventLog.unshift(`Day ${state.day}: Store maintenance completed.`); saveState(); renderEmpire(); toast('Store condition improved'); }
-function refillShelves(){
-  let capacity=stockerCapacity(); const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).sort((a,b)=>placementFactor(b)-placementFactor(a)); let stockouts=0;
-  owned.forEach(id=>{ const inv=state.inventory[id], cap=shelfCapacityFor(id); if(!Number.isFinite(inv.shelfQty))inv.shelfQty=Math.min(inv.qty,cap); const need=Math.max(0,Math.min(cap,inv.qty)-inv.shelfQty), add=Math.min(need,capacity); inv.shelfQty+=add; capacity-=add; if(inv.shelfQty<=0&&inv.qty>0)stockouts++; }); return stockouts;
+function renderProducts(){
+  const owned=Object.keys(state.inventory).map(getProduct).filter(p=>p&&(state.inventory[p.id]?.qty||0)>0).sort((a,b)=>placementFactor(b.id)-placementFactor(a.id)||state.market[b.id].hype-state.market[a.id].hype);
+  screen.innerHTML=`<section class="section"><div class="merch-overview"><div><span>✨ FRONT WINDOW</span><b>${placementCount('window')}/3</b></div><div><span>🎯 ENTRANCE FEATURE</span><b>${placementCount('feature')}/4</b></div><div><span>📦 STOCKROOM</span><b>${v04StockroomUnits()}</b></div></div><div class="restock-banner"><div><span>📦</span><div><b>Shelf replenishment capacity ${v04RestockCapacity()} units/day</b><small>Stockroom staff refill high-priority displays first when you open.</small></div></div><button onclick="manualRestock()">RESTOCK NOW</button></div><div class="section-head"><div><h2>Your Products</h2><p>Stock in the building does not sell until it reaches a shelf.</p></div></div>${owned.length?owned.map(p=>inventoryRow(p)).join(''):`<div class="empty"><div class="emoji">📦</div><h3>Your shelves are empty</h3><p>Order products from the Market.</p><button class="primary-btn" onclick="switchTab('market')">OPEN MARKET</button></div>`}</section>`;
 }
+function manualRestock(){ if(state.operations.preRestockedDay===state.day)return toast('Pre-opening restock already used today'); const moved=v04RestockShelves(); state.operations.preRestockedDay=state.day; saveState(); renderProducts(); toast(moved?`${moved} units moved onto shelves`:'Shelves are already full'); }
+function setPlacement(id,key){
+  const def=shelfPlacements[key]; if(!def)return; if(placementCount(key,id)>=def.capacity)return toast(`${def.name} is full`); const inv=state.inventory[id]; state.placements[id]=key; v04EnsureShelf(inv,id); inv.shelfQty=Math.min(inv.shelfQty,v04ShelfTarget(id),inv.qty); saveState(); openPriceSheet(id); toast(`Moved to ${def.name}`);
+}
+function openPriceSheet(id){
+  const p=getProduct(id),inv=state.inventory[id],m=state.market[id],rivalPrices=rivalTemplates.map(r=>state.rivals[r.id].prices[id]).filter(Boolean).sort((a,b)=>a-b),low=rivalPrices[0]||p.rrp,current=state.placements[id]||'main'; v04EnsureShelf(inv,id);
+  sheetContent.innerHTML=`<div class="sheet-art package-sheet" style="${brandStyle(p)}">${packageArt(p,false)}</div><div class="brand-name">${getBrand(p.brand).name} · ${lifecycleFor(p).icon} ${lifecycleFor(p).name}</div><h2>${p.name}</h2><div class="metrics"><div class="metric"><span>Total Stock</span><strong>${inv.qty}</strong></div><div class="metric"><span>On Shelf</span><strong>${inv.shelfQty}</strong></div><div class="metric"><span>Stockroom</span><strong>${Math.max(0,inv.qty-inv.shelfQty)}</strong></div></div><label class="field-label" for="priceInput">Your shelf price</label><input id="priceInput" class="price-input" type="number" min="1" step="0.50" value="${inv.price.toFixed(2)}"/><div class="button-row"><button class="secondary-btn" onclick="setPricePreset('${id}',${p.rrp})">RRP ${money(p.rrp)}</button><button class="secondary-btn" onclick="setPricePreset('${id}',${low})">MATCH ${money(low)}</button></div><div class="divider"></div><div class="field-label">Shelf placement · target facing changes with zone</div><div class="placement-grid">${Object.entries(shelfPlacements).map(([key,x])=>`<button class="placement-btn ${current===key?'active':''}" onclick="setPlacement('${id}','${key}')"><span>${x.icon}</span><b>${x.name}</b><small>${key==='window'?'+45% visibility · 6 facing':key==='feature'?'+25% visibility · 7 facing':key==='back'?'−32% visibility · 4 facing':'Normal visibility · 8 facing'}</small></button>`).join('')}</div><button class="primary-btn wide" style="margin-top:10px" onclick="savePrice('${id}')">SAVE PRODUCT SETUP</button><p class="small-note">Average unit cost ${money(inv.avgCost||p.wholesale)} · Lowest rival ${money(low)}. Stockroom replenishment occurs before each trading day.</p>`; openSheet();
+}
+
+function buyStock(id){
+  const p=getProduct(id),stock=state.supplierStock[id]||0,capacityLeft=inventoryCapacity()-inventoryUsed()-preorderUnits(),qty=Math.min(sheetQty,stock,maxOrderAllocation(p),capacityLeft),unit=effectiveWholesale(p),cost=roundMoney(qty*unit),sup=supplierStateFor(p),pre=p.launchDay>state.day;
+  if(qty<=0)return toast('No stockroom capacity or supplier stock'); if(state.cash<cost)return toast('Not enough cash for that commitment');
+  state.cash=roundMoney(state.cash-cost); state.supplierStock[id]-=qty; state.orderCount++; sup.totalSpend=roundMoney((sup.totalSpend||0)+cost); sup.orders=(sup.orders||0)+1; sup.relationship=clamp(sup.relationship+.45+Math.min(1.2,qty/30),0,100);
+  if(pre){ const old=state.preorders[id]||{qty:0,cost:0}; state.preorders[id]={qty:old.qty+qty,cost:roundMoney(old.cost+cost),unitCost:unit,committedDay:state.day}; state.eventLog.unshift(`Day ${state.day}: Pre-ordered ${qty} × ${p.name} for ${money(cost)}.`); }
+  else { if(!state.inventory[id])state.inventory[id]={qty:0,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:unit,shelfQty:0}; const inv=state.inventory[id],oldQty=inv.qty,oldCost=(inv.avgCost||p.wholesale)*oldQty; inv.qty+=qty; inv.avgCost=roundMoney((oldCost+cost)/Math.max(1,inv.qty)); v04EnsureShelf(inv,id); if(!state.placements[id])state.placements[id]='main'; state.eventLog.unshift(`Day ${state.day}: Ordered ${qty} × ${p.name} into the stockroom for ${money(cost)}.`); }
+  saveState(); closeSheet(); render(); toast(pre?`${qty} × ${p.name} committed`:`${qty} units delivered to stockroom`);
+}
+function processPreorders(){
+  const delivered=[]; Object.entries({...state.preorders}).forEach(([id,x])=>{ const p=getProduct(id); if(p.launchDay>state.day)return; if(!state.inventory[id])state.inventory[id]={qty:0,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:roundMoney((x.cost||0)/Math.max(1,x.qty)),shelfQty:0}; const inv=state.inventory[id],oldQty=inv.qty,oldCost=(inv.avgCost||p.wholesale)*oldQty,incomingCost=x.cost||((x.unitCost||p.wholesale)*x.qty); inv.qty+=x.qty; inv.avgCost=roundMoney((oldCost+incomingCost)/Math.max(1,inv.qty)); v04EnsureShelf(inv,id); if(!state.placements[id])state.placements[id]='main'; delivered.push(`${x.qty} × ${p.name}`); delete state.preorders[id]; state.eventLog.unshift(`Day ${state.day}: Launch delivery arrived in stockroom — ${x.qty} × ${p.name}.`); }); return delivered;
+}
+
+function openHoursSheet(){
+  sheetContent.innerHTML=`<h2>🕒 Opening Hours</h2><p class="subtle">Longer days increase traffic, but wages and fatigue rise too.</p><div class="hours-grid">${[8,10,12].map(h=>{const tf=h===8?'−12% traffic':h===12?'+18% traffic':'Normal traffic',wf=h===8?'−16% wages':h===12?'+22% wages':'Normal wages';return `<button class="hours-option ${state.operations.hours===h?'active':''}" onclick="setOpeningHours(${h})"><b>${h} HOURS</b><span>${tf}</span><small>${wf}</small></button>`}).join('')}</div><div class="metrics"><div class="metric"><span>Checkout capacity</span><strong>${v04CheckoutCapacity()}</strong></div><div class="metric"><span>Current wages</span><strong>${money(v04DailyWages())}</strong></div><div class="metric"><span>Cleanliness</span><strong>${Math.round(state.operations.cleanliness)}%</strong></div></div><button class="secondary-btn wide" onclick="closeSheet()">DONE</button>`; openSheet();
+}
+function setOpeningHours(h){ if(![8,10,12].includes(h))return; state.operations.hours=h; saveState(); openHoursSheet(); toast(`${h}-hour trading day selected`); }
+function openStaffSheet(){
+  const defs=v04StaffRoles(),team=v04Team();
+  sheetContent.innerHTML=`<h2>👥 Store Team</h2><p class="subtle">Staff are paid every trading day. Skill improves with experience; long hours increase fatigue.</p><div class="staff-summary"><div><span>TEAM</span><b>${team.length}/${v04StaffCapacity()}</b></div><div><span>DAILY WAGES</span><b>${money(v04DailyWages())}</b></div><div><span>CHECKOUT</span><b>${v04CheckoutCapacity()}</b></div><div><span>RESTOCK</span><b>${v04RestockCapacity()}</b></div></div>${team.map(s=>{const d=defs[s.role];return `<div class="staff-card"><div class="staff-avatar">${d.icon}</div><div><h3>${s.name} · ${d.name}</h3><p>Skill ${Math.round(s.skill)} · Service ${Math.round(s.service)} · Fatigue ${Math.round(s.fatigue)}%</p><small>${d.desc}</small></div><div class="staff-pay"><b>${money((s.wage||d.wage)*v04WageFactor())}</b><small>/day</small><button onclick="fireStaff('${s.id}')">REMOVE</button></div></div>`}).join('')}<div class="divider"></div><div class="field-label">Hire staff</div><div class="hire-grid">${Object.entries(defs).map(([key,d])=>`<button onclick="hireStaff('${key}')"><span>${d.icon}</span><b>${d.name}</b><small>${money(d.wage)}/10h day</small></button>`).join('')}</div><button class="secondary-btn wide" onclick="closeSheet()">DONE</button>`; openSheet();
+}
+function hireStaff(role){ const defs=v04StaffRoles(),d=defs[role]; if(!d)return; if(v04Team().length>=v04StaffCapacity())return toast('Your current shop floor cannot support more staff'); const n=v04MakeStaff(role,state.staff.nextId++); state.staff.team.push(n); state.eventLog.unshift(`Day ${state.day}: Hired ${n.name} as ${d.name}.`); saveState(); openStaffSheet(); toast(`${n.name} joined the team`); }
+function fireStaff(id){ const i=state.staff.team.findIndex(s=>s.id===id); if(i<0)return; const s=state.staff.team[i]; if(!confirm(`Remove ${s.name} from the roster?`))return; state.staff.team.splice(i,1); state.eventLog.unshift(`Day ${state.day}: ${s.name} left the store team.`); saveState(); openStaffSheet(); toast(`${s.name} removed`); }
+function deepCleanStore(){ const cost=180; if(state.cash<cost)return toast('You need $180 for a deep clean'); state.cash=roundMoney(state.cash-cost); state.operations.cleanliness=clamp(state.operations.cleanliness+28,0,100); state.operations.lastDeepCleanDay=state.day; state.eventLog.unshift(`Day ${state.day}: Paid ${money(cost)} for a deep clean.`); saveState(); render(); toast('Store cleaned and reset'); }
+function openStoreUpgrades(){
+  const defs=v04UpgradeDefs(); sheetContent.innerHTML=`<h2>🏗️ Shop Improvements</h2><p class="subtle">These upgrades change both the simulation and the visible store floor.</p><div class="shop-upgrade-grid">${Object.entries(defs).map(([key,d])=>{const owned=!!state.operations[key];return `<div class="shop-upgrade-card ${owned?'owned':''}"><div>${d.icon}</div><section><h3>${d.name}</h3><p>${d.desc}</p></section><button ${owned?'disabled':''} onclick="buyStoreUpgrade('${key}')">${owned?'BUILT':money(d.cost)}</button></div>`}).join('')}</div><button class="secondary-btn wide" onclick="closeSheet()">DONE</button>`; openSheet();
+}
+function buyStoreUpgrade(key){ const d=v04UpgradeDefs()[key]; if(!d||state.operations[key])return; if(state.cash<d.cost)return toast('Not enough cash for this upgrade'); state.cash=roundMoney(state.cash-d.cost); state.operations[key]=1; state.eventLog.unshift(`Day ${state.day}: Installed ${d.name}.`); saveState(); openStoreUpgrades(); toast(`${d.name} installed`); }
+
 function simulateCustomers(){
-  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0&&getProduct(id).launchDay<=state.day); owned.forEach(id=>{const inv=state.inventory[id];inv.soldToday=0;inv.lastProfit=0;if(!Number.isFinite(inv.shelfQty))inv.shelfQty=Math.min(inv.qty,shelfCapacityFor(id));});
-  refillShelves();
-  let traffic=Math.round(58*(1+state.upgrades.marketing*.06)*(0.78+state.rating/8)*seasonFactor()*(state.openHours/8)); traffic=Math.round(traffic*(.82+state.storeCondition/500)*(state.facilities.biggerfloor?1.13:1)); traffic+=Math.round((Math.random()-.5)*13); traffic=clamp(traffic,18,trafficCeiling());
-  const personaCounts={}; let baskets=[], stockouts=0, attemptedPurchases=0;
-  const weightedProducts=()=>owned.filter(id=>state.inventory[id].shelfQty>0);
-  for(let c=0;c<traffic;c++){
-    const typeKey=customerTypePick(), type=customerTypes[typeKey]; personaCounts[typeKey]=(personaCounts[typeKey]||0)+1; const available=weightedProducts(); if(!available.length){stockouts++;continue;}
-    const wants=1+(Math.random()<Math.min(.72,(type.basket-1)*.55)?1:0)+(Math.random()<Math.max(0,(type.basket-1)*.18)?1:0), basket=[];
-    for(let n=0;n<wants;n++){
-      const scored=available.map(id=>{const p=getProduct(id),inv=state.inventory[id],m=state.market[id],life=lifecycleFor(p),priceRatio=inv.price/p.rrp; let priceFit=priceRatio<=.85?1.3:priceRatio<=1?1.12:Math.max(.12,1-(priceRatio-1)*(2.35/type.price)); let score=(m.hype*.48+m.potential*.16+p.quality*.18*type.quality+p.scarcity*.12*type.scarcity)*priceFit*life.factor*placementFactor(id)*displayFactor(p); if(typeKey==='collector'&&state.facilities.collector)score*=1.24;if(typeKey==='kid'&&state.facilities.demozone)score*=1.18;if(typeKey==='impulse'&&state.facilities.lighting)score*=1.14; return {id,score:score*(.8+Math.random()*.4)};}).sort((a,b)=>b.score-a.score);
-      const pick=scored[0]; if(!pick||pick.score<26)continue; const inv=state.inventory[pick.id]; if(inv.shelfQty<=0)continue; attemptedPurchases++; inv.shelfQty--; inv.qty--; basket.push(pick.id);
-    }
-    if(basket.length)baskets.push({type:typeKey,items:basket});
+  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0); owned.forEach(id=>{state.inventory[id].soldToday=0;state.inventory[id].lastProfit=0;v04EnsureShelf(state.inventory[id],id);});
+  let restocked=state.operations.preRestockedDay===state.day?0:v04RestockShelves(), liveRestockBudget=v04RestockCapacity(), floorTrafficBoost=(state.operations.biggerFloor?1.12:1)*(state.operations.lighting?1.06:1)*(state.operations.demoZone?1.10:1);
+  let traffic=Math.round(66*(1+state.upgrades.marketing*.06)*(0.88+state.rating/9.5)*seasonFactor()*v04HoursFactor()*floorTrafficBoost*(.82+state.operations.cleanliness/500)); traffic+=Math.round((Math.random()-.5)*14); traffic=Math.max(18,traffic);
+  state.customersToday=traffic; state.todaySales=0; state.todayProfit=0;
+  const typeCounts=Object.fromEntries(v04CustomerTypes().map(t=>[t.id,0])), planned=[]; let stockoutMisses=0;
+  const sellableProducts=()=>owned.map(getProduct).filter(p=>state.inventory[p.id].shelfQty>0&&p.launchDay<=state.day);
+  for(let i=0;i<traffic;i++){
+    const type=v04PickCustomerType(); typeCounts[type.id]++;
+    const available=sellableProducts(); if(!available.length){stockoutMisses++;continue;}
+    const first=v04WeightedPick(available,p=>v04ProductScore(p,type)); if(!first)continue;
+    const buyChance=v04PurchaseChance(type,first); if(Math.random()>buyChance)continue;
+    const desired=Math.max(1,Math.min(4,Math.round(type.basket+(Math.random()-.5)*1.5))), basket=[];
+    let picks=0;
+    while(picks<desired){ const current=sellableProducts().filter(p=>!basket.some(x=>x.id===p.id)); if(!current.length)break; const p=v04WeightedPick(current,x=>v04ProductScore(x,type)); if(!p)break; const extraChance=picks===0?1:(.50-(picks*.08)+(type.basket-1)*.12); if(Math.random()>extraChance)break; basket.push(p); picks++; }
+    if(basket.length) planned.push({type,basket});
   }
-  const capacity=checkoutCapacity(), queueLost=Math.max(0,baskets.length-capacity); if(queueLost>0){ const lost=baskets.splice(capacity); lost.forEach(b=>b.items.forEach(id=>{const inv=state.inventory[id];inv.qty++;inv.shelfQty=Math.min(shelfCapacityFor(id),inv.shelfQty+1);})); }
-  state.todaySales=0;state.todayProfit=0;let itemCount=0,giftWrap=0;
-  baskets.forEach(b=>{b.items.forEach(id=>{const p=getProduct(id),inv=state.inventory[id];inv.soldToday++;inv.totalSold=(inv.totalSold||0)+1; const rev=inv.price, prof=rev-(inv.avgCost||p.wholesale);inv.lastProfit+=prof;state.todaySales+=rev;state.todayProfit+=prof;state.cash+=rev;state.totalRevenue+=rev;state.totalProfit+=prof;itemCount++;}); if(state.facilities.giftwrap&&(b.type==='gift'||Math.random()<.12)){giftWrap+=4.5;}});
-  if(giftWrap){state.todaySales+=giftWrap;state.todayProfit+=giftWrap;state.cash+=giftWrap;state.totalRevenue+=giftWrap;state.totalProfit+=giftWrap;state.giftWrapRevenue+=giftWrap;}
-  const floorCover=Math.min(1.25,(state.staff.floor||0)*staffEfficiency()/Math.max(1,traffic/60)), baseShrink=Math.round(itemCount*(.025+Math.random()*.025)*(state.facilities.security?.28:1)*(floorCover<.75?1.55:1)); let shrinkage=0;
-  if(baseShrink>0&&owned.length){ for(let i=0;i<baseShrink;i++){ const candidates=owned.filter(id=>state.inventory[id].qty>0); if(!candidates.length)break; const id=rand(candidates),inv=state.inventory[id];inv.qty--;inv.shelfQty=Math.min(inv.shelfQty,inv.qty);shrinkage+=(inv.avgCost||getProduct(id).wholesale); } state.cash-=shrinkage;state.todayProfit-=shrinkage;state.totalProfit-=shrinkage;state.shrinkageTotal+=shrinkage; }
-  const wages=payrollCost();state.cash-=wages;state.todayProfit-=wages;state.totalProfit-=wages;
-  const conversion=traffic?baskets.length/traffic:0, avgBasket=baskets.length?state.todaySales/baskets.length:0, queuePenalty=traffic?queueLost/traffic*42:0, conditionPenalty=Math.max(0,(78-state.storeCondition)*.18), serviceBoost=(state.staff.floor||0)*2.4*staffEfficiency()+(state.upgrades.service||0)*2+(state.staff.manager||0)*2.5+(state.facilities.giftwrap?1.5:0);
-  const targetSat=clamp(68+serviceBoost-queuePenalty-conditionPenalty-stockouts*.25,25,98);state.satisfaction=clamp(state.satisfaction*.72+targetSat*.28,20,99); state.rating=clamp(state.rating+(state.satisfaction>80?.018:state.satisfaction<55?-.035:-.004)+(Math.random()-.5)*.015,2.7,5);state.storeCondition=clamp(state.storeCondition-(1.2+state.openHours*.08)*(state.facilities.biggerfloor?1.08:1)+(state.staff.manager||0)*.35,20,100);state.marketShare=clamp(state.marketShare+(conversion>.48?.13:-.05)+(state.satisfaction>82?.07:0)+(Math.random()-.5)*.10,4,65);
-  state.customersToday=traffic;state.lastOps={queueLost,shrinkage:roundMoney(shrinkage),wages:roundMoney(wages),avgBasket:roundMoney(avgBasket),conversion:Math.round(conversion*100),stockouts,persona:personaCounts,served:baskets.length,items:itemCount,giftWrap:roundMoney(giftWrap)};
-  ['todaySales','todayProfit','cash','totalRevenue','totalProfit','shrinkageTotal','giftWrapRevenue'].forEach(k=>state[k]=roundMoney(state[k]||0));
+  const checkoutCap=v04CheckoutCapacity(), pressure=planned.length/Math.max(1,checkoutCap), acceptRate=pressure<=1?1:clamp(1-(pressure-1)*.48,.48,.98);
+  let abandoned=0,transactions=0,basketUnits=0,revenue=0,grossProfit=0,giftWraps=0;
+  planned.forEach(order=>{
+    if(Math.random()>acceptRate){abandoned++;return;}
+    let units=0,orderRevenue=0,orderProfit=0;
+    order.basket.forEach(p=>{ const inv=state.inventory[p.id]; if(inv.shelfQty<=0||inv.qty<=0){stockoutMisses++;return;} inv.shelfQty--; inv.qty--; inv.soldToday=(inv.soldToday||0)+1; inv.totalSold=(inv.totalSold||0)+1; units++; basketUnits++; orderRevenue+=inv.price; orderProfit+=inv.price-(inv.avgCost||p.wholesale); inv.lastProfit=(inv.lastProfit||0)+(inv.price-(inv.avgCost||p.wholesale)); if(inv.shelfQty<=1&&inv.qty>inv.shelfQty&&liveRestockBudget>0){const move=Math.min(v04ShelfTarget(p.id)-inv.shelfQty,inv.qty-inv.shelfQty,liveRestockBudget);if(move>0){inv.shelfQty+=move;liveRestockBudget-=move;restocked+=move;}} });
+    if(!units)return; transactions++; if(state.operations.giftWrap && (order.type.id==='gift'||order.type.id==='parent') && Math.random()<.54){giftWraps++;orderRevenue+=4.5;orderProfit+=3.8;}
+    revenue+=orderRevenue; grossProfit+=orderProfit;
+  });
+  const security=v04SecurityScore(), shrinkChance=clamp((traffic/110)*(1-security/135)*.55,.03,.65), shrinkUnits=Math.min(3,weightedChance(shrinkChance*100)?1+(weightedChance(22)?1:0):0);
+  let shrinkCost=0; for(let n=0;n<shrinkUnits;n++){ const victims=owned.filter(id=>state.inventory[id].qty>0); if(!victims.length)break; const id=rand(victims),inv=state.inventory[id],p=getProduct(id); inv.qty--; if(inv.shelfQty>0)inv.shelfQty--; shrinkCost+=inv.avgCost||p.wholesale; }
+  const wages=v04DailyWages(),maintenance=v04MaintenanceCost(),queuePeak=Math.max(0,Math.ceil(planned.length/Math.max(1,1+v04RoleCount('cashier')+(state.operations.secondCheckout?1:0)))),service=v04ServiceScore();
+  const pricePain=owned.length?owned.reduce((a,id)=>a+Math.max(0,(state.inventory[id].price/getProduct(id).rrp)-1.15),0)/owned.length:0;
+  let satisfaction=82 + (service-60)*.18 + (state.operations.cleanliness-80)*.18 - (abandoned/Math.max(1,planned.length))*35 - Math.min(14,pricePain*40) - stockoutMisses/Math.max(1,traffic)*18;
+  if(state.operations.giftWrap)satisfaction+=2; if(state.operations.demoZone)satisfaction+=2; satisfaction=clamp(satisfaction,35,98);
+  state.cash=roundMoney(state.cash+revenue-wages-maintenance); state.todaySales=roundMoney(revenue); state.todayProfit=roundMoney(grossProfit-wages-maintenance-shrinkCost); state.totalRevenue=roundMoney(state.totalRevenue+revenue); state.totalProfit=roundMoney(state.totalProfit+state.todayProfit);
+  state.customerStats={buyers:transactions,transactions,basketUnits,avgBasket:transactions?roundMoney(revenue/transactions):0,abandoned,queuePeak,satisfaction,giftWraps,shrinkUnits,shrinkCost:roundMoney(shrinkCost),wages,maintenanceCost:maintenance,grossProfit:roundMoney(grossProfit),restocked,stockoutMisses,types:typeCounts};
+  const cleanlinessDrop=traffic*.018+state.operations.hours*.25; state.operations.cleanliness=clamp(state.operations.cleanliness-cleanlinessDrop+v04RoleCount('floor')*3.2+v04RoleCount('manager')*1.8,28,100);
+  state.operations.maintenance=clamp(state.operations.maintenance-(state.operations.hours===12?2.2:1.1)+(maintenance>0?.45:0),45,100);
+  v04UpdateStaffAfterDay();
+  const ratingMove=(satisfaction-76)*.0024 + (state.upgrades.service||0)*.004 + (Math.random()-.5)*.014; state.rating=clamp(state.rating+ratingMove,2.7,5);
+  state.reputation=clamp(state.reputation+(satisfaction-74)*.035-abandoned*.015,0,100);
+  state.marketShare=clamp(state.marketShare+(state.todayProfit>700?.13:-.05)+(satisfaction>84?.06:0)+(Math.random()-.5)*.10,4,68);
 }
 function simulateRivals(){
-  const beforeShare=state.marketShare; const _stateSummary=state.lastOps; // retain v0.3 strategic rival simulation body through a compact equivalent
-  rivalTemplates.forEach(r=>{const s=state.rivals[r.id],inv=s.inventory||(s.inventory={}),ranked=products.filter(p=>p.launchDay<=state.day+4).sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype),target=r.id==='collector'?(ranked.find(p=>p.scarcity>70)||ranked[0]):ranked[Math.min(ranked.length-1,Math.floor(Math.random()*Math.min(10,ranked.length)))]; if(!target)return; let rev=0;Object.entries(inv).forEach(([id,q])=>{if(q<=0)return;const p=getProduct(id),units=Math.min(q,Math.max(0,Math.round(state.market[id].hype/45*seasonFactor()*(.7+Math.random()*.5))));inv[id]-=units;rev+=units*(s.prices[id]||p.rrp);});s.cash+=rev;s.lastSales=roundMoney(rev);const pressure=state.marketShare>22||beforeShare>22;let want=4+Math.floor(Math.random()*8);if(r.id==='mega')want+=6;if(r.id==='trend'&&state.market[target.id].hype>72)want+=8;const take=Math.min(state.supplierStock[target.id]||0,want);if(take>0){state.supplierStock[target.id]-=take;inv[target.id]=(inv[target.id]||0)+take;s.cash-=take*target.wholesale;}if(r.id==='mega'&&pressure){s.prices[target.id]=roundMoney(target.rrp*(.74+Math.random()*.1));s.activity=`RETALIATION SALE: undercut ${target.name} to ${money(s.prices[target.id])} after your market share climbed.`;}else if(r.id==='collector'){s.prices[target.id]=roundMoney(target.rrp*(1.12+Math.random()*.22));s.activity=`Secured scarce ${target.name}; ${inv[target.id]||0} units now held.`;}else if(r.id==='trend'){s.activity=`Copied your hot-category strategy and loaded up on ${target.name}.`;}else{s.activity=`Promoted ${getBrand(target.brand).name} to protect family traffic.`;}if(weightedChance(r.rumor+(pressure?8:0))){const rumor=ranked[0];state.market[rumor.id].hype=clamp(state.market[rumor.id].hype-(3+Math.floor(Math.random()*6)),15,99);s.activity=`A negative rumour about ${rumor.name} is circulating locally. Source unverified.`;}s.share=clamp(s.share+(rev>2200?.12:-.02)+(Math.random()-.5)*.3,5,38);});
+  rivalTemplates.forEach(r=>{
+    const s=state.rivals[r.id],inv=s.inventory||(s.inventory={}),candidates=products.filter(p=>p.launchDay<=state.day+4),ranked=[...candidates].sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype),target=r.id==='trend'?ranked[0]:r.id==='collector'?ranked.find(p=>p.scarcity>65)||ranked[0]:rand(ranked.slice(0,12)),m=state.market[target.id],life=lifecycleFor(target);
+    let rev=0; Object.entries(inv).forEach(([id,q])=>{if(q<=0)return;const p=getProduct(id),h=state.market[id].hype,pr=s.prices[id]||p.rrp,units=Math.min(q,Math.max(0,Math.round((h/100)*2.5*seasonFactor()*(.7+Math.random()*.7))));inv[id]-=units;rev+=units*pr;}); s.lastSales=roundMoney(rev); s.cash=roundMoney(s.cash+rev);
+    if((m.hype>58||r.id==='mega')&&(state.supplierStock[target.id]||0)>0){let want=r.id==='mega'?8+Math.floor(Math.random()*14):r.id==='trend'?10+Math.floor(Math.random()*16):r.id==='collector'?4+Math.floor(target.scarcity/15):4+Math.floor(Math.random()*8);if(life.key==='clearance')want=Math.floor(want*.35);const take=Math.min(state.supplierStock[target.id]||0,want);if(take>0){state.supplierStock[target.id]-=take;inv[target.id]=(inv[target.id]||0)+take;s.cash-=take*target.wholesale;}}
+    const playerThreat=state.marketShare>24||state.todayProfit>1500||state.rating>4.55; s.pressure=clamp((s.pressure||0)+(playerThreat?8:-2),0,100);
+    if(playerThreat&&r.id==='mega'&&weightedChance(72)){s.prices[target.id]=roundMoney(target.rrp*(.72+Math.random()*.10));s.activity=`RETALIATION: cut ${target.name} to ${money(s.prices[target.id])} after your market share climbed.`;}
+    else if(playerThreat&&r.id==='family'&&weightedChance(48)){s.activity=`Launched a family-service campaign after your rating reached ${state.rating.toFixed(1)}★.`;s.share=clamp(s.share+.25,5,38);}
+    else if(playerThreat&&r.id==='trend'&&weightedChance(58)){const take=Math.min(state.supplierStock[target.id]||0,8+Math.floor(Math.random()*12));state.supplierStock[target.id]-=take;inv[target.id]=(inv[target.id]||0)+take;s.activity=`Copied your hot range and grabbed ${take} more ${target.name} units.`;}
+    else if(r.id==='mega'&&weightedChance(58)){s.prices[target.id]=roundMoney(target.rrp*(.78+Math.random()*.13));s.activity=`Price war: cut ${target.name} to ${money(s.prices[target.id])} while holding ${inv[target.id]||0} units.`;}
+    else if(r.id==='collector'&&m.hype>72){s.prices[target.id]=roundMoney(target.rrp*(1.14+Math.random()*.24));s.activity=`Collector premium: ${target.name} at ${money(s.prices[target.id])}; ${inv[target.id]||0} units held.`;}
+    else if(r.id==='trend'){s.prices[target.id]=roundMoney(target.rrp*(.96+Math.random()*.14));s.activity=`Chased ${target.name}; now holding ${inv[target.id]||0} units.`;}
+    else{s.prices[target.id]=roundMoney(target.rrp*(.92+Math.random()*.11));s.activity=`Featured ${getBrand(target.brand).name} and adjusted ${target.name} to ${money(s.prices[target.id])}.`;}
+    if(weightedChance(r.rumor)){const rumorTarget=rand(ranked.slice(0,10)),hit=3+Math.floor(Math.random()*7);state.market[rumorTarget.id].hype=clamp(state.market[rumorTarget.id].hype-hit,15,99);s.activity=`Unverified rumour is circulating about ${rumorTarget.name}. Buzz fell ${hit} points.`;}
+    s.share=clamp(s.share+(rev>2500?.16:-.02)+(Math.random()-.5)*.45,5,38);
+  });
 }
 function buildDaySummary(completedDay){
-  const sold=Object.entries(state.inventory).map(([id,x])=>({p:getProduct(id),sold:x.soldToday||0,profit:x.lastProfit||0})).sort((a,b)=>b.sold-a.sold),best=sold[0],worst=[...sold].sort((a,b)=>a.sold-b.sold)[0],trend=[...products].sort((a,b)=>state.market[b.id].trend-state.market[a.id].trend)[0],o=state.lastOps||{};
-  return {day:completedDay,date:gameDate(completedDay).label,sales:state.todaySales,profit:state.todayProfit,customers:state.customersToday,best:best?.p?.name||'No sales',bestQty:best?.sold||0,worst:worst?.p?.name||'—',worstQty:worst?.sold||0,trend:trend?.name||'—',trendMove:state.market[trend?.id]?.trend||0,ops:o,satisfaction:Math.round(state.satisfaction)};
+  const sold=Object.entries(state.inventory).map(([id,x])=>({p:getProduct(id),sold:x.soldToday||0,profit:x.lastProfit||0})).sort((a,b)=>b.sold-a.sold),best=sold[0],worst=[...sold].sort((a,b)=>a.sold-b.sold)[0],trend=[...products].sort((a,b)=>state.market[b.id].trend-state.market[a.id].trend)[0],cs=state.customerStats||v04DefaultCustomerStats();
+  return {day:completedDay,date:gameDate(completedDay).label,sales:state.todaySales,profit:state.todayProfit,grossProfit:cs.grossProfit||0,customers:state.customersToday,buyers:cs.buyers||0,transactions:cs.transactions||0,avgBasket:cs.avgBasket||0,abandoned:cs.abandoned||0,satisfaction:cs.satisfaction||0,wages:cs.wages||0,maintenance:cs.maintenanceCost||0,shrinkUnits:cs.shrinkUnits||0,shrinkCost:cs.shrinkCost||0,restocked:cs.restocked||0,best:best?.p?.name||'No sales',bestQty:best?.sold||0,worst:worst?.p?.name||'—',worstQty:worst?.sold||0,trend:trend?.name||'—',trendMove:state.market[trend?.id]?.trend||0};
 }
 function showDaySummary(summary,event,deliveries=[]){
-  const o=summary.ops||{}; splash.innerHTML=`<div class="day-summary"><div class="day-summary-top"><span class="kicker">${summary.date.toUpperCase()} COMPLETE</span><h2>${summary.profit>=0?'The tills closed in the black.':'Operations dragged the day into the red.'}</h2><p>${summary.customers} visitors · ${summary.satisfaction}% satisfaction.</p></div><div class="day-summary-grid"><div><span>SALES</span><b>${money(summary.sales)}</b></div><div><span>NET DAY PROFIT</span><b class="${summary.profit>=0?'profit':'loss'}">${money(summary.profit)}</b></div><div><span>AVG BASKET</span><b>${money(o.avgBasket||0)}</b><small>${o.items||0} items sold</small></div><div><span>CONVERSION</span><b>${o.conversion||0}%</b><small>${o.served||0} baskets served</small></div></div><div class="summary-news"><div><span>👥 STAFF COST</span><b>-${money(o.wages||0)}</b><small>${state.openHours}-hour trading day</small></div>${o.queueLost?`<div class="major"><span>🧾 QUEUE LOSS</span><b>${o.queueLost} abandoned baskets</b><small>Add cashiers or a second checkout.</small></div>`:''}${o.shrinkage?`<div><span>🕵️ SHRINKAGE</span><b>-${money(o.shrinkage)}</b><small>Security and floor staff reduce losses.</small></div>`:''}${deliveries.length?`<div><span>🚚 DELIVERY</span><b>${deliveries.join(', ')}</b><small>Ready to merchandise.</small></div>`:''}${event?`<div class="major"><span>${event.icon} MARKET EVENT</span><b>${event.title}</b><small>${event.body}</small></div>`:''}</div><button class="primary-btn wide" onclick="closeSplash()">START ${gameDate(state.day).label.toUpperCase()} →</button></div>`;splash.classList.remove('hidden');
+  splash.innerHTML=`<div class="day-summary v04-summary"><div class="day-summary-top"><span class="kicker">${summary.date.toUpperCase()} COMPLETE</span><h2>${summary.profit>=0?'The tills closed in profit.':'Operations ate into the day.'}</h2><p>${seasonName(summary.day)} · ${summary.customers} visitors · ${summary.transactions} paying baskets.</p></div><div class="day-summary-grid"><div><span>SALES</span><b>${money(summary.sales)}</b><small>${money(summary.avgBasket)} avg basket</small></div><div><span>OPERATING PROFIT</span><b class="${summary.profit>=0?'profit':'loss'}">${money(summary.profit)}</b><small>${money(summary.grossProfit)} gross before ops</small></div><div><span>SATISFACTION</span><b>${Math.round(summary.satisfaction)}%</b><small>${summary.abandoned} abandoned queue</small></div><div><span>BEST SELLER</span><b>${summary.best}</b><small>${summary.bestQty} units</small></div></div><div class="ops-cost-breakdown"><div><span>👥 Wages</span><b>−${money(summary.wages)}</b></div><div><span>🧽 Maintenance</span><b>−${money(summary.maintenance)}</b></div><div><span>🕵️ Shrink / damage</span><b>−${money(summary.shrinkCost)}</b></div><div><span>📦 Restocked</span><b>${summary.restocked} units</b></div></div><div class="summary-news"><div><span>📈 MARKET</span><b>${summary.trend}</b><small>Momentum ${summary.trendMove>=0?'+':''}${summary.trendMove}</small></div>${deliveries.length?`<div><span>🚚 LAUNCH DELIVERY</span><b>${deliveries.join(', ')}</b><small>Arrived in stockroom — staff must replenish shelves.</small></div>`:''}${event?`<div class="major"><span>${event.icon} MARKET EVENT</span><b>${event.title}</b><small>${event.body}</small></div>`:''}</div><button class="primary-btn wide" onclick="closeSplash()">SET UP ${gameDate(state.day).label.toUpperCase()} →</button></div>`; splash.classList.remove('hidden');
 }
-// Ensure launch deliveries receive usable shelf stock.
-const _v03ProcessPreorders=processPreorders;
-processPreorders=function(){const delivered=_v03ProcessPreorders();Object.entries(state.inventory).forEach(([id,inv])=>{if(!Number.isFinite(inv.shelfQty))inv.shelfQty=Math.min(inv.qty,shelfCapacityFor(id));});return delivered;};
-window.changeStaff=changeStaff;window.setOpenHours=setOpenHours;window.buyFacility=buyFacility;window.performMaintenance=performMaintenance;
-saveState();
+function endDay(){
+  const completed=state.day; simulateCustomers(); simulateMarket(); simulateRivals(); const event=maybeMajorEvent(),summary=buildDaySummary(completed); state.lastSummary=summary; state.day++; const deliveries=processPreorders(); replenishSuppliers(); saveState(); showDaySummary(summary,event,deliveries);
+}
+
+function renderEmpire(){
+  const net=state.cash+inventoryValue(),nextTarget=50000,progress=clamp(net/nextTarget*100,0,100),cs=state.customerStats||v04DefaultCustomerStats();
+  screen.innerHTML=`<section class="empire-hero"><div class="kicker">YOUR COMPANY · ${gameDate().label}</div><h2>Run the floor. Build the leverage.</h2><p>Your store now has real operating capacity: staff, queues, restocking, satisfaction and daily overhead all flow into profit.</p><div class="divider"></div><div class="metrics"><div class="metric"><span>Net Worth</span><strong>${money(net)}</strong></div><div class="metric"><span>Lifetime Sales</span><strong>${money(state.totalRevenue)}</strong></div><div class="metric"><span>Market Share</span><strong>${state.marketShare.toFixed(1)}%</strong></div></div><div class="field-label">Next milestone · ${money(nextTarget)}</div><div class="progress"><span style="width:${progress}%"></span></div></section>
+  <section class="section"><div class="section-head"><div><h2>Store Operations</h2><p>${v04Team().length} staff · ${Math.round(cs.satisfaction||78)}% satisfaction · ${Math.round(state.operations.cleanliness)}% cleanliness</p></div></div><div class="empire-ops-actions"><button onclick="openStaffSheet()">👥 MANAGE STAFF</button><button onclick="openHoursSheet()">🕒 OPENING HOURS</button><button onclick="openStoreUpgrades()">🏗️ SHOP IMPROVEMENTS</button></div></section>
+  <section class="section"><div class="section-head"><div><h2>Supplier Relationships</h2><p>Ordering consistently earns better wholesale pricing.</p></div></div>${Object.values(supplierTemplates).map(s=>supplierCard(s)).join('')}</section>
+  <section class="section"><div class="section-head"><div><h2>Franchise Displays</h2><p>Permanent branded displays boost that franchise by 18%.</p></div></div><div class="display-grid">${Object.entries(displayDefs).map(([brand,d])=>displayCard(brand,d)).join('')}</div></section>
+  <section class="section"><div class="section-head"><div><h2>Business Upgrades</h2><p>Back-office improvements from the earlier store foundation.</p></div></div>${upgrades.map(u=>upgradeCard(u)).join('')}</section>
+  <section class="section"><button class="secondary-btn wide" onclick="showLog()">VIEW EVENT HISTORY</button><button class="danger-btn wide" style="margin-top:9px" onclick="resetGame()">RESET LOCAL SAVE</button><p class="small-note">v${VERSION} · Local-first GitHub Pages save.</p></section>`;
+}
+
+window.openHoursSheet=openHoursSheet;window.setOpeningHours=setOpeningHours;window.openStaffSheet=openStaffSheet;window.hireStaff=hireStaff;window.fireStaff=fireStaff;window.deepCleanStore=deepCleanStore;window.openStoreUpgrades=openStoreUpgrades;window.buyStoreUpgrade=buyStoreUpgrade;window.manualRestock=manualRestock;
+
+/* ==========================================================================
+   v0.5 — Franchise Universe + Collector Economy
+   Persistent franchise health, media, generations, reissues, nostalgia,
+   chase variants, condition and a secondary collector market.
+   ========================================================================== */
+
+function v05Lore(){
+  return {
+    gearmorph:{tagline:'Machines choose their form.',world:'A century-spanning machine war where vehicles bond with pilots and rewrite themselves for every battlefield.',media:['Rift Protocol','Sparkstorm','The Alloy Wars'],lines:['Genesis Shift','Rift Era','Titan Age','Neo Circuit']},
+    lumalife:{tagline:'Every day can be your story.',world:'Fashion, friendship and aspirational city life built around Luma and a changing cast of designers, musicians and adventurers.',media:['City Lights','Luma Live!','Dreamhouse Diaries'],lines:['City Collection','Starlight Era','New Horizons','Luma Forever']},
+    starward:{tagline:'The frontier is never finished.',world:'A cinematic space saga of rangers, rogue captains and enormous fleet battles beyond the mapped systems.',media:['The Eclipse War','Outpost Seven','Nova Rebellion'],lines:['Frontier One','Eclipse Era','Nova Age','Legacy Fleet']},
+    pocketbeasts:{tagline:'Small friends. Huge adventures.',world:'Collectible elemental creatures discovered in hidden habitats, each with forms, rivalries and ultra-rare mutations.',media:['Wild Trails','Moonhorn Quest','Crystal League'],lines:['First Nest','Wild Trails','Crystal Age','Neo Beasts']},
+    mythicforge:{tagline:'Legends are made, not found.',world:'Knights, monsters and rival kingdoms battle for ancient runes that can reshape the fantasy realm.',media:['Blackspire','Runeblade','Age of Wyverns'],lines:['Foundry Age','Blackspire Saga','Frost Realm','Forged Again']},
+    nitrostreet:{tagline:'Build it. Race it. Own the street.',world:'A stylised global racing universe of crews, wild concept cars, stunt cities and impossible tracks.',media:['Night Circuit','Turbo City','World Drift'],lines:['Street One','Night Circuit','Hyper Era','Retro Velocity']},
+    littleworld:{tagline:'Big imagination starts small.',world:'A warm preschool world of towns, farms, builders and friendly families designed around open-ended play.',media:['Happy Town','Animal Friends','Busy Builders'],lines:['Happy Town','Friends & Family','Discovery Days','Little World Again']},
+    ultraleague:{tagline:'Every city needs a hero.',world:'A bright superhero universe where young heroes, veteran legends and theatrical villains collide across one enormous city.',media:['Rise of the League','Shadow Spark','Crisis City'],lines:['Founders Era','Crisis Wave','New Guard','Legacy League']}
+  };
+}
+function v05VariantDefs(){
+  return {
+    uncommon:{name:'Colour Variant',icon:'🎨',mult:1.45,rank:1},
+    rare:{name:'Metallic Variant',icon:'✨',mult:2.35,rank:2},
+    ultra:{name:'Ultra-Rare Chase',icon:'💎',mult:4.8,rank:3},
+    prototype:{name:'Prototype Colourway',icon:'🧪',mult:7.5,rank:4}
+  };
+}
+function v05ConditionDefs(){
+  return {
+    mint:{name:'Mint',icon:'🟢',mult:1.15},
+    near:{name:'Near Mint',icon:'🔵',mult:1.00},
+    wear:{name:'Shelf Wear',icon:'🟠',mult:.78},
+    damaged:{name:'Damaged Box',icon:'🔴',mult:.48}
+  };
+}
+function v05DefaultFranchises(){
+  const out={};
+  Object.keys(brands).forEach((id,i)=>{
+    const lore=v05Lore()[id];
+    out[id]={health:clamp(64+((i*11)%24)-8,45,88),sentiment:clamp(68+((i*7)%21)-7,45,90),collectorHeat:clamp(52+((i*13)%31)-8,35,90),nostalgia:28+((i*9)%26),generation:1,wave:1,eraStartDay:1,currentMedia:lore.media[0],mediaBoost:0,mediaBoostUntil:0,lastEvent:'The current range is finding its audience.',history:[`Day 1: ${brands[id].name} entered the local market with ${lore.lines[0]}.`]};
+  });
+  return out;
+}
+function v05DefaultCollectorStats(){ return {found:0,sold:0,revenue:0,profit:0,displayedId:null,lastFinds:[],lastFindDay:0}; }
+function v05ProductIndex(p){ return productSeeds[p.brand].findIndex(r=>r[0]===p.name); }
+function v05ProductMeta(p){
+  const idx=Math.max(0,v05ProductIndex(p)), fs=state?.franchises?.[p.brand], lore=v05Lore()[p.brand], override=state?.releaseOverrides?.[p.id];
+  const generation=override?.generation||fs?.generation||1, wave=override?.wave||Math.floor(idx/2)+1;
+  const limited=p.scarcity>=82 || idx===4;
+  const edition=p.scarcity>=88?'Collector Limited':p.scarcity>=78?'Fan Edition':'Mainline';
+  const run=limited ? 700+((productNumber(p)*137)%2300) : null;
+  const exclusive=p.scarcity>=84?supplierFor(p).name:null;
+  return {generation,wave,line:override?.label||lore.lines[(generation-1)%lore.lines.length],edition,limited,run,exclusive,media:lore.media[idx%lore.media.length]};
+}
+function v05ReleaseInfo(p){
+  const o=state?.releaseOverrides?.[p.id];
+  return {launchDay:o?.launchDay||p.launchDay,label:o?.label||null,generation:o?.generation||state?.franchises?.[p.brand]?.generation||1,wave:o?.wave||v05ProductMeta(p).wave};
+}
+function v05LaunchDay(p){ return v05ReleaseInfo(p).launchDay; }
+function lifecycleFor(p,day=state.day){
+  const rel=day-v05LaunchDay(p);
+  if(rel<=-5)return {key:'rumour',name:'Rumour',icon:'👂',factor:.48};
+  if(rel<0)return {key:'announced',name:'Announced',icon:'📣',factor:.72};
+  if(rel<=2)return {key:'launch',name:'Launch',icon:'🚀',factor:1.28};
+  if(rel<=8)return {key:'peak',name:'Peak',icon:'🔥',factor:1.18};
+  if(rel<=18)return {key:'stable',name:'Stable',icon:'🟢',factor:1};
+  if(rel<=30)return {key:'decline',name:'Decline',icon:'↘️',factor:.82};
+  if(rel<=45)return {key:'clearance',name:'Clearance',icon:'🏷️',factor:.62};
+  return {key:'discontinued',name:'Discontinued',icon:'📦',factor:.42};
+}
+function v05FranchiseFactor(brand){
+  const f=state.franchises[brand], media=state.day<=f.mediaBoostUntil?(1+f.mediaBoost/100):1;
+  return clamp((.72+(f.health/100)*.28+(f.sentiment/100)*.18)*media,.72,1.42);
+}
+function v05NostalgiaFactor(p,type){
+  const life=lifecycleFor(p),f=state.franchises[p.brand]; if(life.key!=='discontinued'&&life.key!=='clearance')return 1;
+  const age=Math.max(0,state.day-v05LaunchDay(p)); const n=1+(f.nostalgia/100)*Math.min(.45,age/180);
+  return type?.id==='collector'?n*1.22:n;
+}
+function v05DisplayedCollector(){ return (state.collectorVault||[]).find(x=>x.cid===state.collectorStats?.displayedId&&!x.sold); }
+function v05CollectorDisplayBoost(p,type){
+  const item=v05DisplayedCollector(); if(!item)return 1; const ip=getProduct(item.productId);
+  if(type?.id==='collector')return ip.brand===p.brand?1.22:1.10;
+  return ip.brand===p.brand?1.05:1.01;
+}
+function v05CollectorValue(item){
+  const p=getProduct(item.productId), f=state.franchises[p.brand], vr=v05VariantDefs()[item.variant]||v05VariantDefs().uncommon, cd=v05ConditionDefs()[item.condition]||v05ConditionDefs().near, m=state.market[p.id];
+  const hype=.78+(m.hype/100)*.52, heat=.68+(f.collectorHeat/100)*.68, nostalgia=1+(f.nostalgia/100)*.34, age=1+Math.min(.32,Math.max(0,state.day-item.foundDay)/180), scarcity=.82+(p.scarcity/100)*.48;
+  return roundMoney(p.rrp*vr.mult*cd.mult*hype*heat*nostalgia*age*scarcity);
+}
+function v05VaultHeld(){ return (state.collectorVault||[]).filter(x=>!x.sold).length; }
+function inventoryUsed(){ return Object.values(state.inventory).reduce((a,x)=>a+x.qty,0)+v05VaultHeld(); }
+function inventoryValue(){
+  const normal=Object.entries(state.inventory).reduce((a,[id,x])=>a+x.qty*(x.avgCost||getProduct(id).wholesale),0);
+  const collector=(state.collectorVault||[]).filter(x=>!x.sold).reduce((a,x)=>a+v05CollectorValue(x),0);
+  return normal+collector;
+}
+function v05RollCondition(preorder=false){
+  const r=Math.random(); if(preorder){ if(r<.72)return 'mint'; if(r<.94)return 'near'; if(r<.985)return 'wear'; return 'damaged'; }
+  if(r<.55)return 'mint'; if(r<.86)return 'near'; if(r<.97)return 'wear'; return 'damaged';
+}
+function v05ExtractCollectorFinds(p,qty,unitCost,preorder=false){
+  const finds=[];
+  for(let i=0;i<qty;i++){
+    const r=Math.random(), scarcity=p.scarcity/100; let variant=null;
+    if(r<.0025+scarcity*.0018)variant='prototype';
+    else if(r<.010+scarcity*.0045)variant='ultra';
+    else if(r<.030+scarcity*.010)variant='rare';
+    else if(r<.075+scarcity*.025)variant='uncommon';
+    if(!variant)continue;
+    finds.push({cid:`C${state.day.toString(36)}${Date.now().toString(36).slice(-4)}${Math.floor(Math.random()*9999).toString().padStart(4,'0')}`,productId:p.id,variant,condition:v05RollCondition(preorder),acquiredCost:unitCost,foundDay:state.day,sold:false});
+    if(finds.length>=Math.max(1,Math.ceil(qty/5)))break;
+  }
+  if(finds.length){
+    state.collectorVault.push(...finds); state.collectorStats.found+=finds.length; state.collectorStats.lastFinds=finds.map(x=>x.cid); state.collectorStats.lastFindDay=state.day;
+    const best=[...finds].sort((a,b)=>v05VariantDefs()[b.variant].rank-v05VariantDefs()[a.variant].rank)[0];
+    state.eventLog.unshift(`Day ${state.day}: Shipment pull — ${v05VariantDefs()[best.variant].name} ${p.name} (${v05ConditionDefs()[best.condition].name}).`);
+  }
+  return finds;
+}
+function v05FranchisePulseCard(id){
+  const b=brands[id],f=state.franchises[id],l=v05Lore()[id];
+  return `<button class="franchise-pulse" style="--pulse-grad:${b.grad}" onclick="openFranchiseHub('${id}')"><span class="franchise-pulse-art" style="background:${b.grad}">${b.glyph}</span><span><small>GEN ${f.generation} · ${f.currentMedia}</small><b>${b.name}</b><em>${Math.round(f.health)} health · ${Math.round(f.collectorHeat)} collector heat</em></span><strong>›</strong></button>`;
+}
+function v05FranchiseRail(){ return `<div class="franchise-rail">${Object.keys(brands).map(v05FranchisePulseCard).join('')}</div>`; }
+function v05CollectorHero(){
+  const held=v05VaultHeld(),display=v05DisplayedCollector(),value=(state.collectorVault||[]).filter(x=>!x.sold).reduce((a,x)=>a+v05CollectorValue(x),0);
+  return `<div class="collector-hero" onclick="openCollectorVault()"><div><span class="kicker">COLLECTOR VAULT</span><h3>${held} special ${held===1?'piece':'pieces'} held</h3><p>${display?`${getProduct(display.productId).name} is attracting collectors in-store.`:'Pull chase variants from supplier cartons, hold them, display them or sell into the secondary market.'}</p></div><div class="collector-value"><span>MARKET VALUE</span><b>${money(value)}</b><small>${state.collectorStats.sold} sold</small></div></div>`;
+}
+
+function migrateState(s){
+  s.version=VERSION; s.tab=s.tab||'store'; s.sound=s.sound!==false;
+  s.preorders=s.preorders||{}; s.placements=s.placements||{}; s.displays=s.displays||{};
+  s.suppliers=s.suppliers||Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}]));
+  Object.values(supplierTemplates).forEach(x=>{if(!s.suppliers[x.id])s.suppliers[x.id]={relationship:x.baseRel,totalSpend:0,orders:0};});
+  s.operations={...v04DefaultOperations(),...(s.operations||{})};
+  s.staff=s.staff||{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]};
+  s.staff.team=Array.isArray(s.staff.team)?s.staff.team:[]; s.staff.nextId=Number.isFinite(s.staff.nextId)?s.staff.nextId:s.staff.team.length+1;
+  s.customerStats={...v04DefaultCustomerStats(),...(s.customerStats||{})};
+  const defaults=v05DefaultFranchises(); s.franchises=s.franchises||{};
+  Object.keys(brands).forEach(id=>{ s.franchises[id]={...defaults[id],...(s.franchises[id]||{})}; s.franchises[id].history=Array.isArray(s.franchises[id].history)?s.franchises[id].history:defaults[id].history; });
+  s.collectorVault=Array.isArray(s.collectorVault)?s.collectorVault:[]; s.collectorStats={...v05DefaultCollectorStats(),...(s.collectorStats||{})}; s.releaseOverrides=s.releaseOverrides||{}; s.franchiseYearProcessed=s.franchiseYearProcessed||gameDate(s.day||1).year; s.v05WelcomeShown=!!s.v05WelcomeShown;
+  products.forEach((p,idx)=>{
+    if(!s.market[p.id])s.market[p.id]={hype:p.baseDemand,trend:0,buzz:'steady'};
+    if(!Number.isFinite(s.market[p.id].potential))s.market[p.id].potential=latentPotential(p);
+    if(s.inventory[p.id]){ if(!Number.isFinite(s.inventory[p.id].avgCost))s.inventory[p.id].avgCost=p.wholesale; if(!s.placements[p.id])s.placements[p.id]=(idx%7===0?'window':idx%5===0?'feature':'main'); if(!Number.isFinite(s.inventory[p.id].shelfQty))s.inventory[p.id].shelfQty=Math.min(s.inventory[p.id].qty||0,(s.placements[p.id]==='window'?6:s.placements[p.id]==='feature'?7:8)); s.inventory[p.id].shelfQty=clamp(s.inventory[p.id].shelfQty,0,s.inventory[p.id].qty||0); }
+  });
+  rivalTemplates.forEach((r,ri)=>{const rs=s.rivals[r.id];if(!rs)return;rs.inventory=rs.inventory||{};rs.cash=Number.isFinite(rs.cash)?rs.cash:70000+ri*18000;rs.lastSales=rs.lastSales||0;rs.pressure=rs.pressure||0;});
+  s.lastSummary=s.lastSummary||null; s.reputation=Number.isFinite(s.reputation)?s.reputation:55;
+  return s;
+}
+function freshState(){
+  const inventory={},placements={}; const starting=['P001','P007','P013','P019','P025','P031','P037','P043'];
+  starting.forEach((id,idx)=>{const p=getProduct(id),qty=8+(idx%4)*2;inventory[id]={qty,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:p.wholesale,shelfQty:Math.min(qty,idx<2?6:idx<4?7:8)};placements[id]=idx<2?'window':idx<4?'feature':'main';});
+  const market={};products.forEach((p,idx)=>market[p.id]={hype:clamp(p.baseDemand+((idx*13)%19)-9,20,96),trend:((idx%5)-2),buzz:'steady',potential:latentPotential(p)});
+  const rivals={};rivalTemplates.forEach((r,ri)=>{const prices={},rinv={};products.forEach((p,idx)=>{prices[p.id]=roundMoney(p.rrp*(r.pricing+((((idx+ri*2)%9)-4)/100)));if(idx%11===ri)rinv[p.id]=4+((idx+ri*3)%10);});rivals[r.id]={cash:70000+ri*18000,rep:r.rep,share:17+ri*2,prices,inventory:rinv,lastSales:0,pressure:0,activity:'Watching the market.'};});
+  return {version:VERSION,day:1,cash:25000,todaySales:0,todayProfit:0,rating:4.2,reputation:55,customersToday:0,totalRevenue:0,totalProfit:0,inventory,market,rivals,supplierStock:Object.fromEntries(products.map(p=>[p.id,p.supplierStock])),upgrades:{stockroom:0,marketing:0,service:0,analytics:0},marketShare:18,lastEvent:'Grand Opening',eventLog:['Day 1: Your independent toy shop opened.'],chatter:[],sound:true,tab:'store',tutorialShown:false,orderCount:0,preorders:{},placements,displays:{},suppliers:Object.fromEntries(Object.values(supplierTemplates).map(x=>[x.id,{relationship:x.baseRel,totalSpend:0,orders:0}])),lastSummary:null,operations:v04DefaultOperations(),staff:{nextId:3,team:[{id:'S1',name:'Mia',role:'cashier',skill:68,service:72,fatigue:10,days:0,wage:v04StaffRoles().cashier.wage},{id:'S2',name:'Noah',role:'floor',skill:64,service:76,fatigue:9,days:0,wage:v04StaffRoles().floor.wage}]},customerStats:v04DefaultCustomerStats(),franchises:v05DefaultFranchises(),collectorVault:[],collectorStats:v05DefaultCollectorStats(),releaseOverrides:{},franchiseYearProcessed:1,v05WelcomeShown:false};
+}
+function loadState(){
+  try{for(const key of [SAVE_KEY,...LEGACY_SAVE_KEYS]){const raw=localStorage.getItem(key);if(!raw)continue;const s=JSON.parse(raw);if(s&&s.inventory&&s.market&&s.rivals){const m=migrateState(s);localStorage.setItem(SAVE_KEY,JSON.stringify(m));return m;}}}catch(e){}
+  return freshState();
+}
+
+function v04ProductScore(p,type){
+  const inv=state.inventory[p.id],m=state.market[p.id],life=lifecycleFor(p);if(!inv||inv.shelfQty<=0)return 0;
+  const priceRatio=inv.price/p.rrp,discount=Math.max(0,1-priceRatio),premium=Math.max(0,priceRatio-1);
+  let priceScore=(1.10-Math.max(0,priceRatio-.85)*type.price*.62+discount*type.price*.45-premium*type.price*.18); if(type.id==='collector'&&p.scarcity>70)priceScore+=premium*.22;if(type.id==='bargain')priceScore+=discount*1.2;
+  let score=(m.hype/100)*type.hype*1.8+(p.quality/100)*type.quality*.9+(p.scarcity/100)*type.scarcity*.55;
+  score*=Math.max(.12,priceScore)*placementFactor(p.id)*displayFactor(p)*life.factor*v05FranchiseFactor(p.brand)*v05NostalgiaFactor(p,type)*v05CollectorDisplayBoost(p,type);
+  if(type.id==='collector'&&state.operations.collectorCabinet)score*=1.28;if(type.id==='kid'&&state.operations.demoZone)score*=1.22;if(type.id==='impulse'&&state.operations.demoZone)score*=1.15;
+  return Math.max(.02,score);
+}
+
+function v05MarketProductCard(p){
+  const m=state.market[p.id],stock=state.supplierStock[p.id]||0,life=lifecycleFor(p),sup=supplierFor(p),ss=supplierStateFor(p),launch=v05LaunchDay(p),pre=launch>state.day,meta=v05ProductMeta(p),rivalCount=rivalTemplates.filter(r=>(state.rivals[r.id].inventory?.[p.id]||0)>0).length;
+  const release=state.releaseOverrides[p.id];
+  return `<article class="market-card v05-market-card">${productArt(p)}<div class="market-body"><div class="market-tag-row"><span class="lifecycle-chip ${life.key}">${life.icon} ${life.name}</span><span class="collector-chip">${meta.limited?'💎':'📚'} ${meta.edition}</span></div><div class="brand-name">${getBrand(p.brand).name} · ${release?release.label:`Gen ${meta.generation} · Wave ${meta.wave}`}</div><div class="market-title-row"><h3>${p.name}</h3><strong>${money(p.rrp)}</strong></div><div class="edition-line">${meta.exclusive?`⭐ ${meta.exclusive} exclusive · `:''}${meta.run?`${meta.run.toLocaleString()} unit run · `:''}${meta.media}</div><div class="metrics"><div class="metric"><span>Your Cost</span><strong>${money(effectiveWholesale(p))}</strong></div><div class="metric"><span>${pre?'Launch':'Supplier'}</span><strong>${pre?gameDate(launch).short:`${stock} left`}</strong></div><div class="metric"><span>Rivals Holding</span><strong>${rivalCount}/4</strong></div></div><div class="supplier-rel"><span>Relationship ${ss.relationship.toFixed(0)}/100</span><div><i style="width:${ss.relationship}%"></i></div></div><div class="button-row"><button class="secondary-btn" onclick="openProductInfo('${p.id}')">DETAILS</button><button class="primary-btn" ${stock<=0||life.key==='discontinued'?'disabled':''} onclick="openBuySheet('${p.id}')">${life.key==='discontinued'?'DISCONTINUED':stock?(pre?'PRE-ORDER':'ORDER STOCK'):'SOLD OUT'}</button></div></div></article>`;
+}
+function renderMarket(){
+  const available=products.filter(p=>v05LaunchDay(p)<=state.day+7||lifecycleFor(p).key!=='rumour'||state.releaseOverrides[p.id]);
+  const filtered=available.filter(p=>currentFilter==='all'||p.brand===currentFilter).sort((a,b)=>{const la=lifecycleFor(a),lb=lifecycleFor(b);if(la.key==='discontinued'&&lb.key!=='discontinued')return 1;if(lb.key==='discontinued'&&la.key!=='discontinued')return -1;return state.market[b.id].hype-state.market[a.id].hype;});
+  const preorders=Object.entries(state.preorders||{}).filter(([,x])=>x.qty>0);
+  screen.innerHTML=`<section class="section">${calendarBanner()}${v05CollectorHero()}<div class="section-head"><div><h2>Franchise Universe</h2><p>Brands now have generations, media, fandom and collector heat.</p></div></div>${v05FranchiseRail()}${preorders.length?`<div class="preorder-panel"><span class="kicker">INCOMING LAUNCH STOCK</span>${preorders.map(([id,x])=>`<div><b>${getProduct(id).name}</b><span>${x.qty} units · arrives ${gameDate(v05LaunchDay(getProduct(id))).label}</span></div>`).join('')}</div>`:''}<div class="section-head"><div><h2>Supplier Market</h2><p>New waves, reissues and limited runs can become collector history.</p></div></div><div class="toolbar"><button class="chip ${currentFilter==='all'?'active':''}" onclick="setFilter('all')">All</button>${Object.entries(brands).map(([id,b])=>`<button class="chip ${currentFilter===id?'active':''}" onclick="setFilter('${id}')">${b.glyph} ${b.name}</button>`).join('')}</div><div class="market-grid">${filtered.map(v05MarketProductCard).join('')}</div></section>`;
+}
+function marketCard(p){ return v05MarketProductCard(p); }
+function openBuySheet(id){
+  const p=getProduct(id),m=state.market[id],stock=state.supplierStock[id]||0,life=lifecycleFor(p),sup=supplierFor(p),launch=v05LaunchDay(p),pre=launch>state.day,unit=effectiveWholesale(p),meta=v05ProductMeta(p);
+  if(life.key==='discontinued')return toast('This release is discontinued — watch for a reissue or collector-market stock.');
+  sheetQty=Math.min(5,stock||1);const inv=state.inventory[id],incoming=state.preorders[id]?.qty||0;
+  sheetContent.innerHTML=`<div class="sheet-art package-sheet" style="${brandStyle(p)}">${packageArt(p,false)}</div><div class="market-tag-row"><span class="lifecycle-chip ${life.key}">${life.icon} ${life.name}</span><span class="collector-chip">${meta.limited?'💎':'📚'} ${meta.edition}</span></div><h2>${p.name}</h2><div class="edition-line">${meta.line} · Wave ${meta.wave}${meta.run?` · ${meta.run.toLocaleString()} unit run`:''}</div><div class="metrics"><div class="metric"><span>Your Cost</span><strong>${money(unit)}</strong></div><div class="metric"><span>RRP</span><strong>${money(p.rrp)}</strong></div><div class="metric"><span>Collector Heat</span><strong>${Math.round(state.franchises[p.brand].collectorHeat)}/100</strong></div></div><p class="subtle">${marketInsight(p)}</p>${pre?`<div class="commit-warning">🔒 PRE-ORDER: cash is paid now. Factory-sealed launch cartons have a better chance of Mint chase variants when they arrive on ${gameDate(launch).label}.</div>`:`<div class="commit-warning">📦 Every supplier carton can contain colour, metallic, ultra-rare or prototype chase variants. Valuable pulls move into your Collector Vault automatically.</div>`}<div class="divider"></div><div class="field-label">${pre?'Commit quantity':'Order quantity'} · Supplier has ${stock} · Your allocation ${maxOrderAllocation(p)}</div><div class="stepper"><button onclick="changeQty(-1,'${id}')">−</button><strong id="qtyValue">${sheetQty}</strong><button onclick="changeQty(1,'${id}')">+</button></div><div class="quick-qty"><button onclick="setOrderQty('${id}',10)">10</button><button onclick="setOrderQty('${id}',25)">25</button><button onclick="setOrderQty('${id}',50)">50</button><button onclick="setOrderQty('${id}',999)">MAX</button></div><button class="primary-btn wide" id="orderBtn" onclick="buyStock('${id}')">${pre?'COMMIT':'ORDER'} ${sheetQty} · ${money(sheetQty*unit)}</button><p class="small-note">Capacity committed: ${inventoryUsed()+preorderUnits()} / ${inventoryCapacity()} units. ${inv?`You own ${inv.qty} standard units.`:''} ${incoming?`${incoming} already incoming.`:''}</p>`;openSheet();
+}
+function changeQty(delta,id){
+  const p=getProduct(id),max=Math.min(state.supplierStock[id]||0,maxOrderAllocation(p),Math.max(0,inventoryCapacity()-inventoryUsed()-preorderUnits())),unit=effectiveWholesale(p),pre=v05LaunchDay(p)>state.day;
+  sheetQty=clamp(sheetQty+delta,1,Math.max(1,max));document.getElementById('qtyValue').textContent=sheetQty;document.getElementById('orderBtn').textContent=`${pre?'COMMIT':'ORDER'} ${sheetQty} · ${money(sheetQty*unit)}`;
+}
+function setOrderQty(id,q){const p=getProduct(id),max=Math.min(state.supplierStock[id]||0,maxOrderAllocation(p),Math.max(0,inventoryCapacity()-inventoryUsed()-preorderUnits()));sheetQty=clamp(q,1,Math.max(1,max));const unit=effectiveWholesale(p),pre=v05LaunchDay(p)>state.day;document.getElementById('qtyValue').textContent=sheetQty;document.getElementById('orderBtn').textContent=`${pre?'COMMIT':'ORDER'} ${sheetQty} · ${money(sheetQty*unit)}`;}
+function buyStock(id){
+  const p=getProduct(id),stock=state.supplierStock[id]||0,capacityLeft=inventoryCapacity()-inventoryUsed()-preorderUnits(),qty=Math.min(sheetQty,stock,maxOrderAllocation(p),capacityLeft),unit=effectiveWholesale(p),cost=roundMoney(qty*unit),sup=supplierStateFor(p),pre=v05LaunchDay(p)>state.day;
+  if(lifecycleFor(p).key==='discontinued')return toast('That release is discontinued.');if(qty<=0)return toast('No stockroom capacity or supplier stock');if(state.cash<cost)return toast('Not enough cash for that commitment');
+  state.cash=roundMoney(state.cash-cost);state.supplierStock[id]-=qty;state.orderCount++;sup.totalSpend=roundMoney((sup.totalSpend||0)+cost);sup.orders=(sup.orders||0)+1;sup.relationship=clamp(sup.relationship+.45+Math.min(1.2,qty/30),0,100);
+  if(pre){const old=state.preorders[id]||{qty:0,cost:0};state.preorders[id]={qty:old.qty+qty,cost:roundMoney(old.cost+cost),unitCost:unit,committedDay:state.day,launchDay:v05LaunchDay(p)};state.eventLog.unshift(`Day ${state.day}: Pre-ordered ${qty} × ${p.name} for ${money(cost)}.`);saveState();closeSheet();render();return toast(`${qty} × ${p.name} committed`);}
+  const finds=v05ExtractCollectorFinds(p,qty,unit,false),regular=Math.max(0,qty-finds.length);if(regular>0){if(!state.inventory[id])state.inventory[id]={qty:0,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:unit,shelfQty:0};const inv=state.inventory[id],oldQty=inv.qty,oldCost=(inv.avgCost||p.wholesale)*oldQty;inv.qty+=regular;inv.avgCost=roundMoney((oldCost+regular*unit)/Math.max(1,inv.qty));if(!state.placements[id])state.placements[id]='main';v04EnsureShelf(inv,id);}state.eventLog.unshift(`Day ${state.day}: Ordered ${qty} × ${p.name} for ${money(cost)}${finds.length?` and pulled ${finds.length} collector variant${finds.length===1?'':'s'}.`:'.'}`);saveState();closeSheet();render();toast(finds.length?`${regular} shelf units + ${finds.length} collector pull${finds.length===1?'':'s'}!`:`${qty} units delivered to stockroom`);
+}
+function processPreorders(){
+  const delivered=[];state.collectorStats.lastFinds=[];
+  Object.entries({...state.preorders}).forEach(([id,x])=>{const p=getProduct(id);if(v05LaunchDay(p)>state.day)return;const unit=roundMoney((x.cost||0)/Math.max(1,x.qty))||x.unitCost||p.wholesale,finds=v05ExtractCollectorFinds(p,x.qty,unit,true),regular=Math.max(0,x.qty-finds.length);if(regular>0){if(!state.inventory[id])state.inventory[id]={qty:0,price:p.rrp,soldToday:0,totalSold:0,lastProfit:0,avgCost:unit,shelfQty:0};const inv=state.inventory[id],oldQty=inv.qty,oldCost=(inv.avgCost||p.wholesale)*oldQty;inv.qty+=regular;inv.avgCost=roundMoney((oldCost+regular*unit)/Math.max(1,inv.qty));if(!state.placements[id])state.placements[id]='main';v04EnsureShelf(inv,id);}delivered.push(`${x.qty} × ${p.name}${finds.length?` · ${finds.length} chase pull${finds.length===1?'':'s'}`:''}`);delete state.preorders[id];state.eventLog.unshift(`Day ${state.day}: Launch delivery arrived — ${x.qty} × ${p.name}.`);});return delivered;
+}
+function openProductInfo(id){
+  const p=getProduct(id),m=state.market[id],life=lifecycleFor(p),sup=supplierFor(p),rs=rivalTemplates.filter(r=>(state.rivals[r.id].inventory?.[id]||0)>0),meta=v05ProductMeta(p),f=state.franchises[p.brand],launch=v05LaunchDay(p);
+  sheetContent.innerHTML=`<div class="sheet-art package-sheet" style="${brandStyle(p)}">${packageArt(p,false)}</div><div class="market-tag-row"><span class="lifecycle-chip ${life.key}">${life.icon} ${life.name}</span><span class="collector-chip">${meta.limited?'💎':'📚'} ${meta.edition}</span></div><h2>${p.name}</h2><p>${meta.line} · Generation ${meta.generation} · Wave ${meta.wave} · tied to <b>${meta.media}</b>.</p>${meta.run?`<div class="limited-banner">LIMITED RUN · ${meta.run.toLocaleString()} pieces${meta.exclusive?` · ${meta.exclusive}`:''}</div>`:''}<div class="metrics"><div class="metric"><span>Quality</span><strong>${p.quality}/100</strong></div><div class="metric"><span>Scarcity</span><strong>${p.scarcity}/100</strong></div><div class="metric"><span>Collector Heat</span><strong>${Math.round(f.collectorHeat)}/100</strong></div></div><p class="subtle">${marketInsight(p)}</p><div class="franchise-mini-link" onclick="closeSheet();openFranchiseHub('${p.brand}')"><span>${getBrand(p.brand).glyph}</span><div><b>${getBrand(p.brand).name}</b><small>${Math.round(f.health)} health · ${Math.round(f.sentiment)} fan sentiment · ${Math.round(f.nostalgia)} nostalgia</small></div><strong>VIEW UNIVERSE →</strong></div>${life.key==='discontinued'?`<div class="commit-warning">📦 Original retail release ended ${Math.max(0,state.day-launch)} days ago. Remaining sealed stock now benefits from nostalgia and collector demand.</div>`:`<button class="primary-btn wide" onclick="closeSheet();openBuySheet('${id}')">${launch>state.day?'PRE-ORDER':'ORDER STOCK'}</button>`}`;openSheet();
+}
+
+function openFranchiseHub(brand){
+  const b=brands[brand],f=state.franchises[brand],l=v05Lore()[brand],brandProducts=products.filter(p=>p.brand===brand),held=(state.collectorVault||[]).filter(x=>!x.sold&&getProduct(x.productId).brand===brand),history=[...f.history].slice(-8).reverse();
+  const hottest=[...brandProducts].sort((a,c)=>state.market[c.id].hype-state.market[a.id].hype)[0];
+  sheetContent.innerHTML=`<div class="franchise-hero" style="background:${b.grad}"><div><span>${b.glyph}</span><small>GENERATION ${f.generation} · WAVE ${f.wave}</small><h2>${b.name}</h2><p>${l.tagline}</p></div></div><p class="franchise-world">${l.world}</p><div class="franchise-metrics"><div><span>BRAND HEALTH</span><b>${Math.round(f.health)}</b><i><em style="width:${f.health}%"></em></i></div><div><span>FAN SENTIMENT</span><b>${Math.round(f.sentiment)}</b><i><em style="width:${f.sentiment}%"></em></i></div><div><span>COLLECTOR HEAT</span><b>${Math.round(f.collectorHeat)}</b><i><em style="width:${f.collectorHeat}%"></em></i></div><div><span>NOSTALGIA</span><b>${Math.round(f.nostalgia)}</b><i><em style="width:${f.nostalgia}%"></em></i></div></div><div class="media-card"><span>📺 CURRENT MEDIA</span><b>${f.currentMedia}</b><small>${state.day<=f.mediaBoostUntil?`Active media boost +${f.mediaBoost}% through ${gameDate(f.mediaBoostUntil).label}`:'Audience response is currently feeding into product demand organically.'}</small></div><div class="field-label">CURRENT & LEGACY PRODUCTS</div><div class="franchise-product-rail">${brandProducts.map(p=>{const meta=v05ProductMeta(p),life=lifecycleFor(p);return `<button onclick="openProductInfo('${p.id}')" style="--brand-grad:${b.grad}">${packageArt(p,true)}<span>${life.icon} ${life.name}</span><b>${p.name}</b><small>${meta.edition} · Wave ${meta.wave}</small></button>`;}).join('')}</div><div class="franchise-highlight"><span>🔥 HOTTEST NOW</span><b>${hottest.name}</b><small>${hypeLabel(state.market[hottest.id].hype)} · ${held.length} collector pieces from this franchise in your vault</small></div><div class="field-label">FRANCHISE HISTORY</div><div class="history-timeline">${history.map(x=>`<div><i></i><span>${x}</span></div>`).join('')}</div><button class="secondary-btn wide" onclick="openCollectorVault('${brand}')">VIEW ${b.name.toUpperCase()} COLLECTIBLES</button>`;openSheet();
+}
+function openCollectorVault(filterBrand='all'){
+  const held=(state.collectorVault||[]).filter(x=>!x.sold&&(filterBrand==='all'||getProduct(x.productId).brand===filterBrand)).sort((a,b)=>v05CollectorValue(b)-v05CollectorValue(a));
+  const value=held.reduce((a,x)=>a+v05CollectorValue(x),0),display=v05DisplayedCollector();
+  sheetContent.innerHTML=`<div class="vault-head"><span class="kicker">SECONDARY MARKET</span><h2>💎 Collector Vault</h2><p>Special shipment pulls are tracked individually. Condition, rarity, fandom and nostalgia continuously change their value.</p></div><div class="vault-summary"><div><span>HELD</span><b>${held.length}</b></div><div><span>MARKET VALUE</span><b>${money(value)}</b></div><div><span>SOLD</span><b>${state.collectorStats.sold}</b></div></div>${display?`<div class="displayed-piece"><span>🪟 IN-STORE ATTRACTION</span><b>${v05VariantDefs()[display.variant].name} ${getProduct(display.productId).name}</b><small>Boosting collector traffic and same-franchise interest.</small></div>`:''}${held.length?`<div class="vault-list">${held.map(v05CollectorItemCard).join('')}</div>`:`<div class="empty"><div class="emoji">💎</div><h3>No special pulls yet</h3><p>Order larger cartons and scarce products. Pre-order cartons have better condition odds.</p></div>`}<p class="small-note">Collector market sales add cash immediately. Holding can pay off if nostalgia, scarcity or franchise heat rises — but values can fall too.</p>`;openSheet();
+}
+function v05CollectorItemCard(item){
+  const p=getProduct(item.productId),vr=v05VariantDefs()[item.variant],cd=v05ConditionDefs()[item.condition],value=v05CollectorValue(item),gain=value-item.acquiredCost,display=state.collectorStats.displayedId===item.cid;
+  return `<article class="vault-item" style="--brand-grad:${getBrand(p.brand).grad}"><div class="vault-art">${packageArt(p,true)}<span class="rarity-star r${vr.rank}">${vr.icon}</span></div><div class="vault-copy"><span class="kicker">${vr.name.toUpperCase()}</span><h3>${p.name}</h3><p>${cd.icon} ${cd.name} · ${getBrand(p.brand).name}</p><div class="vault-price"><b>${money(value)}</b><small class="${gain>=0?'profit':'loss'}">${gain>=0?'+':''}${money(gain)} vs cost</small></div><div class="button-row"><button class="secondary-btn" onclick="toggleCollectorDisplay('${item.cid}')">${display?'REMOVE DISPLAY':'DISPLAY'}</button><button class="primary-btn" onclick="sellCollectorItem('${item.cid}')">SELL ${money(value)}</button></div></div></article>`;
+}
+function toggleCollectorDisplay(cid){
+  const item=(state.collectorVault||[]).find(x=>x.cid===cid&&!x.sold);if(!item)return;state.collectorStats.displayedId=state.collectorStats.displayedId===cid?null:cid;saveState();openCollectorVault();toast(state.collectorStats.displayedId===cid?'Collector piece placed in-store':'Collector piece returned to vault');
+}
+function sellCollectorItem(cid){
+  const item=(state.collectorVault||[]).find(x=>x.cid===cid&&!x.sold);if(!item)return;const value=v05CollectorValue(item),profit=roundMoney(value-item.acquiredCost);item.sold=true;item.soldDay=state.day;item.soldValue=value;if(state.collectorStats.displayedId===cid)state.collectorStats.displayedId=null;state.cash=roundMoney(state.cash+value);state.todaySales=roundMoney(state.todaySales+value);state.todayProfit=roundMoney(state.todayProfit+profit);state.totalRevenue=roundMoney(state.totalRevenue+value);state.totalProfit=roundMoney(state.totalProfit+profit);state.collectorStats.sold++;state.collectorStats.revenue=roundMoney(state.collectorStats.revenue+value);state.collectorStats.profit=roundMoney(state.collectorStats.profit+profit);const p=getProduct(item.productId);state.franchises[p.brand].collectorHeat=clamp(state.franchises[p.brand].collectorHeat+.35,0,100);state.eventLog.unshift(`Day ${state.day}: Sold ${v05VariantDefs()[item.variant].name} ${p.name} for ${money(value)}.`);saveState();openCollectorVault();updateStats();toast(`Collector sale ${money(value)}`);
+}
+
+function v05ApplyFranchiseEffect(brand,{health=0,sentiment=0,collector=0,nostalgia=0,hype=0,mediaBoost=0,duration=0}={}){
+  const f=state.franchises[brand];f.health=clamp(f.health+health,5,100);f.sentiment=clamp(f.sentiment+sentiment,5,100);f.collectorHeat=clamp(f.collectorHeat+collector,5,100);f.nostalgia=clamp(f.nostalgia+nostalgia,0,100);if(mediaBoost){f.mediaBoost=mediaBoost;f.mediaBoostUntil=state.day+duration;}products.filter(p=>p.brand===brand).forEach(p=>{state.market[p.id].hype=clamp(state.market[p.id].hype+hype,15,99);state.market[p.id].trend=clamp(state.market[p.id].trend+Math.sign(hype)*2,-5,5);});
+}
+function v05ScheduleReissue(brand,label='Anniversary Reissue',delay=5){
+  const candidates=products.filter(p=>p.brand===brand&&lifecycleFor(p).key==='discontinued').sort((a,b)=>pScoreForReissue(b)-pScoreForReissue(a));
+  const p=candidates[0]||rand(products.filter(x=>x.brand===brand));const f=state.franchises[brand],launch=state.day+delay;state.releaseOverrides[p.id]={launchDay:launch,label,generation:f.generation,wave:f.wave};state.supplierStock[p.id]=Math.max(state.supplierStock[p.id]||0,20+Math.floor(Math.random()*35));state.market[p.id].hype=clamp(Math.max(state.market[p.id].hype,58)+6,15,99);state.market[p.id].trend=3;f.history.push(`Day ${state.day}: ${p.name} announced as ${label}, launching ${gameDate(launch).label}.`);state.eventLog.unshift(`Day ${state.day}: ${brands[brand].name} announced ${label} — ${p.name}.`);return p;
+}
+function pScoreForReissue(p){return p.scarcity*.5+p.quality*.25+state.franchises[p.brand].nostalgia*.25;}
+function v05MaybeFranchiseEvent(){
+  if(state.day%5!==0&&!weightedChance(18))return null;const brand=rand(Object.keys(brands)),b=brands[brand],f=state.franchises[brand],l=v05Lore()[brand],roll=Math.random();let title,body,icon='📺';
+  if(roll<.22){const media=rand(l.media);f.currentMedia=media;v05ApplyFranchiseEffect(brand,{health:6,sentiment:8,collector:4,hype:8,mediaBoost:12,duration:8});title=`${media} BREAKS OUT`;body=`${b.name}'s new media release is a surprise hit. Brand health and toy demand are rising together.`;}
+  else if(roll<.40){const media=rand(l.media);f.currentMedia=media;v05ApplyFranchiseEffect(brand,{health:-7,sentiment:-10,collector:-2,hype:-8,mediaBoost:-8,duration:6});title=`FANS TURN ON ${media.toUpperCase()}`;body=`Reviews are poor and longtime fans dislike the direction. Current ${b.name} toys are taking a demand hit.`;icon='📉';}
+  else if(roll<.58){v05ApplyFranchiseEffect(brand,{collector:8,nostalgia:12,hype:3});const p=v05ScheduleReissue(brand,'Anniversary Reissue',5);title=`${b.name.toUpperCase()} ANNIVERSARY`;body=`Nostalgia is surging. ${p.name} is returning in a short anniversary reissue and collectors are watching allocations.`;icon='🎂';}
+  else if(roll<.74){f.generation++;f.wave=1;f.eraStartDay=state.day;v05ApplyFranchiseEffect(brand,{health:4,sentiment:-3,collector:5,nostalgia:7,hype:5});const p=v05ScheduleReissue(brand,`${l.lines[(f.generation-1)%l.lines.length]} Reboot`,7);title=`${b.name.toUpperCase()} REBOOTED`;body=`A new generation has been revealed. Fans are debating the redesign while ${p.name} becomes the first major reboot release.`;icon='⚡';}
+  else if(roll<.88){v05ApplyFranchiseEffect(brand,{sentiment:7,collector:5,hype:5,mediaBoost:7,duration:5});title=`FAN-FAVOURITE REVEAL`;body=`A beloved ${b.name} character is returning. Collector chatter is pulling the wider range upward.`;icon='❤️';}
+  else{v05ApplyFranchiseEffect(brand,{health:-4,sentiment:-6,hype:-3});title=`${b.name.toUpperCase()} PRICE BACKLASH`;body=`Fans are complaining about value for money. Sentiment is falling even though committed collectors remain interested.`;icon='💢';}
+  f.lastEvent=body;f.history.push(`Day ${state.day}: ${title} — ${body}`);if(f.history.length>24)f.history=f.history.slice(-24);state.eventLog.unshift(`Day ${state.day}: ${title}.`);return {icon,title,body};
+}
+function v05UpdateFranchisesAfterDay(){
+  Object.keys(brands).forEach(brand=>{const f=state.franchises[brand],ids=products.filter(p=>p.brand===brand).map(p=>p.id),sold=ids.reduce((a,id)=>a+(state.inventory[id]?.soldToday||0),0),avgHype=ids.reduce((a,id)=>a+state.market[id].hype,0)/ids.length;f.health=clamp(f.health+(sold>8?.55:sold===0?-.18:.08)+(avgHype-60)*.006,5,100);f.collectorHeat=clamp(f.collectorHeat+(ids.some(id=>lifecycleFor(getProduct(id)).key==='discontinued')?.06:0)+(avgHype>78?.12:-.02),5,100);f.nostalgia=clamp(f.nostalgia+(state.day-f.eraStartDay>50?.05:0),0,100);if(state.day>f.mediaBoostUntil)f.mediaBoost*=.7;});
+}
+function v05HandleYearRollover(){
+  const year=gameDate(state.day).year;if(year<=state.franchiseYearProcessed)return;state.franchiseYearProcessed=year;
+  Object.keys(brands).forEach((brand,i)=>{const f=state.franchises[brand];f.wave++;f.nostalgia=clamp(f.nostalgia+5,0,100);if((f.health<44&&weightedChance(55))||weightedChance(16)){f.generation++;f.wave=1;f.eraStartDay=state.day;f.history.push(`Year ${year}: ${brands[brand].name} entered Generation ${f.generation}.`);}const label=f.wave===1?`${v05Lore()[brand].lines[(f.generation-1)%v05Lore()[brand].lines.length]} Reboot`:`Year ${year} Wave ${f.wave}`;v05ScheduleReissue(brand,label,4+i*4);});
+  state.eventLog.unshift(`Year ${year}: The toy industry rolled into a new retail year with fresh waves and reissues.`);
+}
+function v05ProcessReleaseLaunches(){
+  Object.entries(state.releaseOverrides||{}).forEach(([id,o])=>{if(o.launched||o.launchDay!==state.day)return;const p=getProduct(id),f=state.franchises[p.brand];o.launched=true;state.supplierStock[id]=Math.max(state.supplierStock[id]||0,28+Math.floor(Math.random()*45));state.market[id].hype=clamp(state.market[id].hype+8,15,99);state.market[id].trend=4;f.health=clamp(f.health+2,0,100);f.history.push(`Day ${state.day}: ${o.label} ${p.name} launched.`);state.eventLog.unshift(`Day ${state.day}: ${o.label} ${p.name} launched.`);});
+}
+function simulateMarket(){
+  products.forEach(p=>{const m=state.market[p.id],life=lifecycleFor(p),launch=v05LaunchDay(p),f=state.franchises[p.brand];let change=(m.potential-m.hype)*.10+(Math.random()-.5)*7+m.trend*.30+(f.health-60)*.008+(f.sentiment-60)*.006;if(life.key==='launch'&&launch===state.day){const reviewShock=Math.round((Math.random()-.46)*34);m.potential=clamp(m.potential+reviewShock,15,99);change+=reviewShock*.45;f.sentiment=clamp(f.sentiment+reviewShock*.18,5,100);f.health=clamp(f.health+reviewShock*.10,5,100);}if(life.key==='peak')change+=1.3;if(life.key==='decline')change-=1.1;if(life.key==='clearance')change-=1.4;if(life.key==='discontinued')change+=f.nostalgia>62?.25:-.8;if(gameDate().month==='December'&&m.potential>62)change+=2.2;m.hype=clamp(Math.round(m.hype+change),15,99);m.trend=clamp(Math.round(change/2),-5,5);m.buzz=hypeLabel(m.hype).toLowerCase();});
+}
+function replenishSuppliers(){
+  products.forEach(p=>{const life=lifecycleFor(p);if(life.key==='discontinued')return;let add=Math.floor(Math.random()*7);if(state.market[p.id].hype>85)add=Math.floor(add*.3);if(life.key==='clearance')add+=2;state.supplierStock[p.id]=clamp((state.supplierStock[p.id]||0)+add,0,150);});
+}
+
+function renderStore(){
+  const hottest=products.filter(p=>v05LaunchDay(p)<=state.day+5&&lifecycleFor(p).key!=='discontinued').sort((a,b)=>state.market[b.id].hype-state.market[a.id].hype)[0]||products[0];
+  const owned=Object.keys(state.inventory).filter(id=>state.inventory[id].qty>0).map(getProduct),front=[...owned].sort((a,b)=>(placementFactor(b.id)*state.market[b.id].hype)-(placementFactor(a.id)*state.market[a.id].hype)).slice(0,6),low=owned.filter(p=>(state.inventory[p.id].shelfQty||0)<=1),chatter=getChatter(),preorderCount=preorderUnits(),cs=state.customerStats||v04DefaultCustomerStats();
+  const topFranchise=Object.keys(brands).sort((a,b)=>state.franchises[b].health-state.franchises[a].health)[0];
+  screen.innerHTML=`<section class="store-world-wrap">${renderStoreWorld(front,chatter,hottest)}<div class="store-command-card"><div><span class="kicker">${gameDate().label.toUpperCase()} · ${seasonName()}</span><h2>${state.lastSummary?'Set the floor for today.':'Your doors are ready to open.'}</h2><p>${state.lastSummary?`${state.lastSummary.customers} visitors · ${state.lastSummary.transactions||0} baskets · ${money(state.lastSummary.sales)} sales last day.`:'The shop, toy market and collector world now evolve together.'}</p></div><button class="primary-btn next-day-btn" onclick="endDay()">OPEN FOR ${state.operations.hours}H <b>→</b></button></div></section><section class="section">${v04OperationsPanel()}</section><section class="section">${calendarBanner()}</section>${preorderCount?`<section class="section"><div class="preorder-strip" onclick="switchTab('market')"><span>🚚</span><div><b>${preorderCount} pre-order units committed</b><small>Factory-sealed launch cartons can contain collector chase variants.</small></div><strong>VIEW →</strong></div></section>`:''}<section class="section">${v05CollectorHero()}</section><section class="section"><div class="section-head"><div><h2>🌐 Franchise Pulse</h2><p>${brands[topFranchise].name} currently leads brand health at ${Math.round(state.franchises[topFranchise].health)}/100.</p></div><button onclick="openFranchiseHub('${topFranchise}')">Explore</button></div>${v05FranchiseRail()}</section><section class="section"><div class="section-head"><div><h2>🔥 Trend Alert</h2><p>${lifecycleFor(hottest).icon} ${lifecycleFor(hottest).name} · ${v05ProductMeta(hottest).edition}</p></div><button onclick="switchTab('market')">Market</button></div><div class="trend-feature" style="${brandStyle(hottest)}" onclick="openBuySheet('${hottest.id}')"><div class="trend-copy"><span class="kicker">${hypeLabel(state.market[hottest.id].hype)} · ${getBrand(hottest.brand).name}</span><strong>${hottest.name}</strong><p>${state.franchises[hottest.brand].currentMedia} · collector heat ${Math.round(state.franchises[hottest.brand].collectorHeat)}/100 · ${state.supplierStock[hottest.id]} supplier units.</p><div class="trend-price"><span>${v05LaunchDay(hottest)>state.day?'Pre-order cost':'Wholesale'}</span><b>${money(effectiveWholesale(hottest))}</b></div></div><div class="trend-pack">${packageArt(hottest,true)}</div></div></section><section class="section"><div class="section-head"><div><h2>Customer Mix</h2><p>Collectors now react to scarcity, nostalgia, condition and your displayed vault piece.</p></div></div><div class="customer-mix">${v04CustomerTypes().map(t=>`<div><span>${t.icon}</span><b>${t.name}</b><small>${cs.types?.[t.id]||0} last day</small></div>`).join('')}</div></section><section class="section"><div class="section-head"><div><h2>Customer Buzz</h2><p>Fans talk about products, media and rival stock.</p></div></div>${chatter.map(c=>`<div class="chatter premium-chatter"><div class="avatar">${c.avatar}</div><div><p>“${c.text}”</p><small>${c.note}</small></div><span class="buzz-wave">〰</span></div>`).join('')}</section><section class="section"><div class="grid2"><div class="action-card accent visual-action" onclick="switchTab('market')"><div class="action-orb">📦</div><h3>Buy & Pre-order</h3><p>${inventoryUsed()} owned · ${preorderCount} incoming.</p></div><div class="action-card visual-action" onclick="openCollectorVault()"><div class="action-orb">💎</div><h3>Collector Vault</h3><p>${v05VaultHeld()} special pieces · ${state.collectorStats.sold} sold.</p></div><div class="action-card visual-action" onclick="openStaffSheet()"><div class="action-orb">👥</div><h3>Team</h3><p>${v04Team().length} staff · ${money(v04DailyWages())} wages.</p></div><div class="action-card visual-action" onclick="switchTab('rivals')"><div class="action-orb">⚔️</div><h3>Rival Watch</h3><p>${state.rivals.mega.activity}</p></div></div></section>`;
+}
+function renderProducts(){
+  const owned=Object.keys(state.inventory).map(getProduct).filter(p=>p&&(state.inventory[p.id]?.qty||0)>0).sort((a,b)=>placementFactor(b.id)-placementFactor(a.id)||state.market[b.id].hype-state.market[a.id].hype);
+  screen.innerHTML=`<section class="section">${v05CollectorHero()}<div class="merch-overview"><div><span>✨ FRONT WINDOW</span><b>${placementCount('window')}/3</b></div><div><span>🎯 ENTRANCE FEATURE</span><b>${placementCount('feature')}/4</b></div><div><span>📦 STOCKROOM</span><b>${v04StockroomUnits()}</b></div></div><div class="restock-banner"><div><span>📦</span><div><b>Shelf replenishment capacity ${v04RestockCapacity()} units/day</b><small>Vault collectibles are separate from normal shelf stock.</small></div></div><button onclick="manualRestock()">RESTOCK NOW</button></div><div class="section-head"><div><h2>Your Products</h2><p>Legacy stock can regain value when nostalgia or a reboot hits.</p></div></div>${owned.length?owned.map(p=>inventoryRow(p)).join(''):`<div class="empty"><div class="emoji">📦</div><h3>Your shelves are empty</h3><p>Order products from the Market.</p><button class="primary-btn" onclick="switchTab('market')">OPEN MARKET</button></div>`}</section>`;
+}
+function inventoryRow(p){
+  const inv=state.inventory[p.id],m=state.market[p.id],margin=inv.price-(inv.avgCost||p.wholesale),pl=shelfPlacements[state.placements[p.id]||'main'],life=lifecycleFor(p),meta=v05ProductMeta(p);v04EnsureShelf(inv,p.id);const stockroom=Math.max(0,inv.qty-inv.shelfQty),shelfPct=Math.round(Math.min(1,inv.shelfQty/Math.max(1,v04ShelfTarget(p.id)))*100),nostalgia=state.franchises[p.brand].nostalgia;
+  return `<div class="inventory-row v04-inventory" style="${brandStyle(p)}" onclick="openPriceSheet('${p.id}')"><div class="inventory-thumb">${packageArt(p,true)}</div><div><div class="inventory-tags"><span>${pl.icon} ${pl.name}</span><span>${life.icon} ${life.name}</span>${life.key==='discontinued'?`<span>🕰️ Nostalgia ${Math.round(nostalgia)}</span>`:''}</div><h3>${p.name}</h3><p>${getBrand(p.brand).name} · ${meta.edition} · ${heat(m.hype)} ${hypeLabel(m.hype)}</p><div class="shelf-mini"><i><em style="width:${shelfPct}%"></em></i><small>${inv.shelfQty} shelf · ${stockroom} stockroom</small></div><p><strong>${money(inv.price)}</strong> · <span class="${margin>=0?'profit':'loss'}">${margin>=0?'+':''}${money(margin)}/unit</span> · ${inv.soldToday||0} sold</p></div><div class="stock-pill ${inv.shelfQty===0&&inv.qty>0?'hot':''}">${inv.qty} total</div></div>`;
+}
+function renderEmpire(){
+  const net=state.cash+inventoryValue(),nextTarget=50000,progress=clamp(net/nextTarget*100,0,100),cs=state.customerStats||v04DefaultCustomerStats();
+  screen.innerHTML=`<section class="empire-hero"><div class="kicker">YOUR COMPANY · ${gameDate().label}</div><h2>Own the shelf. Understand the fandom.</h2><p>Your competitive advantage now includes franchise history and a live collector economy — not just retail margin.</p><div class="divider"></div><div class="metrics"><div class="metric"><span>Net Worth</span><strong>${money(net)}</strong></div><div class="metric"><span>Collector Sales</span><strong>${money(state.collectorStats.revenue)}</strong></div><div class="metric"><span>Market Share</span><strong>${state.marketShare.toFixed(1)}%</strong></div></div><div class="field-label">Next milestone · ${money(nextTarget)}</div><div class="progress"><span style="width:${progress}%"></span></div></section><section class="section">${v05CollectorHero()}</section><section class="section"><div class="section-head"><div><h2>Franchise Portfolio</h2><p>Track brand health, fandom, collector heat, generations and media.</p></div></div>${v05FranchiseRail()}</section><section class="section"><div class="section-head"><div><h2>Store Operations</h2><p>${v04Team().length} staff · ${Math.round(cs.satisfaction||78)}% satisfaction · ${Math.round(state.operations.cleanliness)}% cleanliness</p></div></div><div class="empire-ops-actions"><button onclick="openStaffSheet()">👥 MANAGE STAFF</button><button onclick="openHoursSheet()">🕒 OPENING HOURS</button><button onclick="openStoreUpgrades()">🏗️ SHOP IMPROVEMENTS</button></div></section><section class="section"><div class="section-head"><div><h2>Supplier Relationships</h2><p>Ordering consistently earns better wholesale pricing and access to limited product.</p></div></div>${Object.values(supplierTemplates).map(s=>supplierCard(s)).join('')}</section><section class="section"><div class="section-head"><div><h2>Franchise Displays</h2><p>Permanent branded displays boost normal sales and pair well with a rare vault attraction.</p></div></div><div class="display-grid">${Object.entries(displayDefs).map(([brand,d])=>displayCard(brand,d)).join('')}</div></section><section class="section"><div class="section-head"><div><h2>Business Upgrades</h2><p>Back-office improvements for your first location.</p></div></div>${upgrades.map(u=>upgradeCard(u)).join('')}</section><section class="section"><button class="secondary-btn wide" onclick="showLog()">VIEW EVENT HISTORY</button><button class="danger-btn wide" style="margin-top:9px" onclick="resetGame()">RESET LOCAL SAVE</button><p class="small-note">v${VERSION} · Local-first GitHub Pages save.</p></section>`;
+}
+
+function buildDaySummary(completedDay){
+  const sold=Object.entries(state.inventory).map(([id,x])=>({p:getProduct(id),sold:x.soldToday||0,profit:x.lastProfit||0})).sort((a,b)=>b.sold-a.sold),best=sold[0],worst=[...sold].sort((a,b)=>a.sold-b.sold)[0],trend=[...products].sort((a,b)=>state.market[b.id].trend-state.market[a.id].trend)[0],cs=state.customerStats||v04DefaultCustomerStats(),hotBrand=Object.keys(brands).sort((a,b)=>state.franchises[b].health-state.franchises[a].health)[0];
+  return {day:completedDay,date:gameDate(completedDay).label,sales:state.todaySales,profit:state.todayProfit,grossProfit:cs.grossProfit||0,customers:state.customersToday,buyers:cs.buyers||0,transactions:cs.transactions||0,avgBasket:cs.avgBasket||0,abandoned:cs.abandoned||0,satisfaction:cs.satisfaction||0,wages:cs.wages||0,maintenance:cs.maintenanceCost||0,shrinkUnits:cs.shrinkUnits||0,shrinkCost:cs.shrinkCost||0,restocked:cs.restocked||0,best:best?.p?.name||'No sales',bestQty:best?.sold||0,worst:worst?.p?.name||'—',worstQty:worst?.sold||0,trend:trend?.name||'—',trendMove:state.market[trend?.id]?.trend||0,hotBrand,hotBrandHealth:state.franchises[hotBrand].health};
+}
+function showDaySummary(summary,event,deliveries=[],franchiseEvent=null){
+  const finds=state.collectorStats.lastFindDay===state.day?state.collectorStats.lastFinds:[];
+  splash.innerHTML=`<div class="day-summary v04-summary"><div class="day-summary-top"><span class="kicker">${summary.date.toUpperCase()} COMPLETE</span><h2>${summary.profit>=0?'The tills closed in profit.':'Operations ate into the day.'}</h2><p>${seasonName(summary.day)} · ${summary.customers} visitors · ${summary.transactions} paying baskets.</p></div><div class="day-summary-grid"><div><span>SALES</span><b>${money(summary.sales)}</b><small>${money(summary.avgBasket)} avg basket</small></div><div><span>OPERATING PROFIT</span><b class="${summary.profit>=0?'profit':'loss'}">${money(summary.profit)}</b><small>${money(summary.grossProfit)} gross before ops</small></div><div><span>SATISFACTION</span><b>${Math.round(summary.satisfaction)}%</b><small>${summary.abandoned} abandoned queue</small></div><div><span>HOTTEST FRANCHISE</span><b>${brands[summary.hotBrand].name}</b><small>${Math.round(summary.hotBrandHealth)}/100 brand health</small></div></div><div class="ops-cost-breakdown"><div><span>👥 Wages</span><b>−${money(summary.wages)}</b></div><div><span>🧽 Maintenance</span><b>−${money(summary.maintenance)}</b></div><div><span>🕵️ Shrink / damage</span><b>−${money(summary.shrinkCost)}</b></div><div><span>📦 Restocked</span><b>${summary.restocked} units</b></div></div><div class="summary-news"><div><span>📈 MARKET</span><b>${summary.trend}</b><small>Momentum ${summary.trendMove>=0?'+':''}${summary.trendMove}</small></div>${deliveries.length?`<div><span>🚚 LAUNCH DELIVERY</span><b>${deliveries.join(', ')}</b><small>Standard pieces reached the stockroom; chase pulls moved to your vault.</small></div>`:''}${franchiseEvent?`<div class="major"><span>${franchiseEvent.icon} FRANCHISE EVENT</span><b>${franchiseEvent.title}</b><small>${franchiseEvent.body}</small></div>`:''}${event?`<div class="major"><span>${event.icon} MARKET EVENT</span><b>${event.title}</b><small>${event.body}</small></div>`:''}</div><button class="primary-btn wide" onclick="closeSplash()">SET UP ${gameDate(state.day).label.toUpperCase()} →</button></div>`;splash.classList.remove('hidden');
+}
+function endDay(){
+  const completed=state.day;simulateCustomers();simulateMarket();simulateRivals();v05UpdateFranchisesAfterDay();const event=maybeMajorEvent(),franchiseEvent=v05MaybeFranchiseEvent(),summary=buildDaySummary(completed);state.lastSummary=summary;state.day++;v05HandleYearRollover();v05ProcessReleaseLaunches();const deliveries=processPreorders();replenishSuppliers();saveState();showDaySummary(summary,event,deliveries,franchiseEvent);
+}
+
+window.openFranchiseHub=openFranchiseHub;window.openCollectorVault=openCollectorVault;window.toggleCollectorDisplay=toggleCollectorDisplay;window.sellCollectorItem=sellCollectorItem;
+
+setTimeout(()=>{
+  if(state && !state.v05WelcomeShown){state.v05WelcomeShown=true;saveState();showSplash('THE TOY UNIVERSE IS ALIVE','Franchises now grow, stumble, reboot and become nostalgic. Supplier cartons can contain individually tracked chase variants — display them to attract collectors, hold them for future value or sell into the secondary market.','💎');}
+},700);
