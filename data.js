@@ -38,25 +38,25 @@ window.TST_DATA = (() => {
     p('rotg-ravager','raiders','Ravager Battle Beast','Vehicles',28,54.99,.62,3,{image:'assets/products/raiders-of-the-galaxy/ravager-battle-beast-package.png',releaseStructure:'Vehicle'}),
 
     // Vector Toys — Cyber Warriors
-    p('cw-vanguard','cyber','Vanguard Prime — Commander of the Guardians','Action Figures',39,79.99,.92,2,{recommendedQty:4,releaseStructure:'Wave 1'}),
-    p('cw-overlord','cyber','Overlord X — Emperor of the Dominion','Action Figures',39,79.99,.74,2,{recommendedQty:3,releaseStructure:'Wave 1'}),
-    p('cw-zipstrike','cyber','Zipstrike — Street Scout','Action Figures',17,34.99,1.18,1,{recommendedQty:6,releaseStructure:'Wave 1'}),
-    p('cw-skyrazor','cyber','Skyrazor — Dominion Air Commander','Action Figures',25,49.99,.88,1.5,{recommendedQty:4,releaseStructure:'Wave 1'}),
+    p('cw-vanguard','cyber','Vanguard Prime — Commander of the Guardians','Action Figures',39,79.99,.92,2,{image:'assets/products/cyber-warriors/vanguard-prime-package.png',recommendedQty:4,releaseStructure:'Wave 1'}),
+    p('cw-overlord','cyber','Overlord X — Emperor of the Dominion','Action Figures',39,79.99,.74,2,{image:'assets/products/cyber-warriors/overlord-x-package.png',recommendedQty:3,releaseStructure:'Wave 1'}),
+    p('cw-zipstrike','cyber','Zipstrike — Street Scout','Action Figures',17,34.99,1.18,1,{image:'assets/products/cyber-warriors/zipstrike-package.png',recommendedQty:6,releaseStructure:'Wave 1'}),
+    p('cw-skyrazor','cyber','Skyrazor — Dominion Air Commander','Action Figures',25,49.99,.88,1.5,{image:'assets/products/cyber-warriors/skyrazor-package.png',recommendedQty:4,releaseStructure:'Wave 1'}),
 
     // Vector Toys — Global Command
-    p('gc-valor','global','Major Valor — Field Commander','Action Figures',14,29.99,.78,1,{recommendedQty:4,releaseStructure:'Wave 1'}),
-    p('gc-nightblade','global','Nightblade — Covert Operative','Action Figures',14,29.99,1.02,1,{recommendedQty:5,releaseStructure:'Wave 1'}),
-    p('gc-serpent','global','Serpent King — Supreme Enemy Commander','Action Figures',14,29.99,.74,1,{recommendedQty:3,releaseStructure:'Wave 1'}),
-    p('gc-whiteviper','global','White Viper — Shadow Assassin','Action Figures',14,29.99,.83,1,{recommendedQty:3,releaseStructure:'Wave 1'}),
-    p('gc-jackal','global','Jackal Strike Buggy','Vehicles',24,49.99,.55,3,{releaseStructure:'Vehicle'}),
+    p('gc-valor','global','Major Valor — Field Commander','Action Figures',14,29.99,.78,1,{image:'assets/products/global-command/major-valor-package.png',recommendedQty:4,releaseStructure:'Wave 1'}),
+    p('gc-nightblade','global','Nightblade — Covert Operative','Action Figures',14,29.99,1.02,1,{image:'assets/products/global-command/nightblade-package.png',recommendedQty:5,releaseStructure:'Wave 1'}),
+    p('gc-serpent','global','Serpent King — Supreme Enemy Commander','Action Figures',14,29.99,.74,1,{image:'assets/products/global-command/serpent-king-package.png',recommendedQty:3,releaseStructure:'Wave 1'}),
+    p('gc-whiteviper','global','White Viper — Shadow Assassin','Action Figures',14,29.99,.83,1,{image:'assets/products/global-command/white-viper-package.png',recommendedQty:3,releaseStructure:'Wave 1'}),
+    p('gc-jackal','global','Jackal Strike Buggy','Vehicles',24,49.99,.55,3,{image:'assets/products/global-command/jackal-strike-buggy-package.png',releaseStructure:'Vehicle'}),
 
     // PlayBurst — Metro Mutants
-    p('mm-blitz','metro','Blitz — Fearless Leader','Action Figures',14,29.99,.96,1,{recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
-    p('mm-riot','metro','Riot — Street Brawler','Action Figures',14,29.99,.93,1,{recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
-    p('mm-gearbox','metro','Gearbox — Tech Genius','Action Figures',14,29.99,.92,1,{recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
-    p('mm-jinx','metro','Jinx — Party Dude','Action Figures',14,29.99,1.08,1,{recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
-    p('mm-hideout','metro','Underground Hideout','Playsets',58,119.99,.5,7,{evergreen:false,releaseStructure:'Flagship Playset'}),
-    p('mm-slammer','metro','Street Slammer','Vehicles',31,64.99,.64,4,{releaseStructure:'Vehicle'}),
+    p('mm-blitz','metro','Blitz — Fearless Leader','Action Figures',14,29.99,.96,1,{image:'assets/products/metro-mutants/blitz-package.png',recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
+    p('mm-riot','metro','Riot — Street Brawler','Action Figures',14,29.99,.93,1,{image:'assets/products/metro-mutants/riot-package.png',recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
+    p('mm-gearbox','metro','Gearbox — Tech Genius','Action Figures',14,29.99,.92,1,{image:'assets/products/metro-mutants/gearbox-package.png',recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
+    p('mm-jinx','metro','Jinx — Party Dude','Action Figures',14,29.99,1.08,1,{image:'assets/products/metro-mutants/jinx-package.png',recommendedQty:2,orderPack:2,releaseStructure:'Wave 1'}),
+    p('mm-hideout','metro','Underground Hideout','Playsets',58,119.99,.5,7,{image:'assets/products/metro-mutants/underground-hideout-package.png',evergreen:false,releaseStructure:'Flagship Playset'}),
+    p('mm-slammer','metro','Street Slammer','Vehicles',31,64.99,.64,4,{image:'assets/products/metro-mutants/street-slammer-package.png',releaseStructure:'Vehicle'}),
 
     // Titan — Velocity Racers
     p('vr-blaze','velocity','Blaze GT','Die-Cast',2.2,4.99,1.22,.25,{recommendedQty:6,orderPack:3,releaseStructure:'2026 Assortment'}),

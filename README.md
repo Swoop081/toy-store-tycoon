@@ -1,4 +1,4 @@
-# Toy Store Tycoon v0.1.1 — Raiders Asset Pass
+# Toy Store Tycoon v0.1.2 — Four-Line Product Art Pass
 
 A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon project.
 
@@ -24,13 +24,51 @@ A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon pro
 - Local save in browser storage
 - Per-save product display-name editor
 - Per-save local artwork replacement using IndexedDB
-- Draxon packaging mockup included as the first real product asset
+
+## Product-art integration
+
+The first four complete product families now use supplied retail-package artwork instead of placeholders. All 21 images are stored as transparent PNGs and wired directly into the live catalogue:
+
+### Raiders of the Galaxy — 6
+- Draxon — Galactic Champion
+- Skullfang — Tyrant of the Dead Moon
+- Ironclaw — Beast of Vargos
+- Nyra — Guardian of the Star Crystal
+- Castle Astralon
+- Ravager Battle Beast
+
+### Cyber Warriors — 4
+- Vanguard Prime — Commander of the Guardians
+- Overlord X — Emperor of the Dominion
+- Zipstrike — Street Scout
+- Skyrazor — Dominion Air Commander
+
+### Global Command — 5
+- Major Valor — Field Commander
+- Nightblade — Covert Operative
+- Serpent King — Supreme Enemy Commander
+- White Viper — Shadow Assassin
+- Jackal Strike Buggy
+
+### Metro Mutants — 6
+- Blitz — Fearless Leader
+- Riot — Street Brawler
+- Gearbox — Tech Genius
+- Jinx — Party Dude
+- Underground Hideout
+- Street Slammer
+
+The source images were supplied at 1024×1024. Their native resolution is preserved; the white studio background has been removed while retaining the complete packaging and soft edge antialiasing.
+
+## Art pipeline
+
+The game uses **one packaging image per product** for the first-build art pass. Product art is displayed with `object-fit: contain`, so package proportions remain intact. Manufacturer names/logos and age markings are not required in the artwork; product metadata belongs to the game UI/data layer.
+
+Remaining products continue to use branded placeholders until their final package images are supplied.
 
 ## Run locally
 
 Open `index.html` in a browser, or serve the folder with any static web server.
-
-Example:
 
 ```bash
 python3 -m http.server 8080
@@ -41,14 +79,3 @@ Then visit `http://localhost:8080`.
 ## GitHub Pages
 
 Upload the contents of this folder to a GitHub repository and enable GitHub Pages from the repository root. No build step or backend is required.
-
-## Art pipeline
-
-The game is currently designed around **one package image per product**. The recommended master canvas is 1600×1600 with the complete retail package visible and uncropped. Until a product receives final art, the game displays a branded placeholder package.
-
-The supplied Draxon mockup is at `assets/draxon-package.jpeg`.
-
-
-## v0.1.1 Raiders asset pass
-
-Added the six supplied Raiders of the Galaxy retail-package artworks as transparent PNG game assets and wired them into the live product catalogue: Draxon, Skullfang, Ironclaw, Nyra, Castle Astralon and Ravager Battle Beast. The original 1024×1024 source resolution is preserved.
