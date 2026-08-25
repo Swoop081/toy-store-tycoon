@@ -1,6 +1,15 @@
-# Toy Store Tycoon v0.1.4 — Branding Pass
+# Toy Store Tycoon v0.1.6 — Cache-Busting
 
 A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon project.
+
+
+## Safari / GitHub Pages cache-busting
+
+- Core CSS and JavaScript files now use release-versioned filenames (`styles.v0.1.6.css`, `data.v0.1.6.js`, `app.v0.1.6.js`) so Safari cannot reuse an older build file after deployment.
+- Product artwork, branding, icons and the web-app manifest receive a `?v=0.1.6` cache-busting version token.
+- The HTML includes no-cache metadata as an additional safeguard for navigation documents.
+- The installed web-app manifest starts at `./?v=0.1.6`, helping iOS home-screen launches request the current release URL.
+- After uploading a new release to GitHub Pages, if Safari is already holding an older `index.html`, open the site once with `?v=0.1.6` appended to the URL. From v0.1.6 onward, release-versioned core files prevent the old CSS/JS bundle problem.
 
 ## Included in this milestone
 
@@ -22,8 +31,14 @@ A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon pro
 - Market and competitor screens
 - Business / store-health screen
 - Local save in browser storage
-- Per-save product display-name editor
-- Per-save local artwork replacement using IndexedDB
+
+## Product identity update
+
+- Removes the per-save **Edit Display Name** option from product details.
+- Removes the per-save **Replace Local Artwork** and reset-artwork controls.
+- Product names and supplied packaging artwork are now canonical game content.
+- Existing legacy save data remains compatible; any old custom product-name overrides are ignored/removed when the save is loaded.
+- Store naming remains unchanged: players can still name their toy store when starting a new game.
 
 ## Branding integration
 
