@@ -2,61 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#ff4f87" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#101528" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Toy Tycoon" />
-  <meta name="format-detection" content="telephone=no" />
   <title>Toy Store Tycoon</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
-  <link rel="icon" href="assets/icons/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div id="app" class="app-shell">
-    <header class="topbar">
-      <div class="brand-lockup">
-        <div class="brand-mark">T</div>
-        <div>
-          <div class="eyebrow">PREMIUM TOY RETAIL SIM</div>
-          <h1>Toy Store Tycoon</h1>
+    <section id="mainMenu" class="screen screen--menu is-active" aria-label="Main menu">
+      <div class="menu-backdrop"></div>
+      <div class="menu-content">
+        <div class="eyebrow">BUILD • STOCK • SELL • GROW</div>
+        <h1 class="game-logo">TOY STORE<br><span>TYCOON</span></h1>
+        <p class="menu-copy">Turn a small neighbourhood toy shop into the store everyone talks about.</p>
+        <div class="menu-actions">
+          <button class="btn btn--hero" id="newStoreBtn">NEW STORE</button>
+          <button class="btn btn--secondary" id="continueBtn">CONTINUE</button>
         </div>
+        <div class="menu-foot">v0.1 • Retail Tycoon Foundation</div>
       </div>
-      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound">🔊</button>
-    </header>
-
-    <section class="stat-strip" aria-label="Store status">
-      <div class="stat"><span>Cash</span><strong id="cashStat">$25,000</strong></div>
-      <div class="stat"><span>Today</span><strong id="salesStat">$0</strong></div>
-      <div class="stat"><span>Rating</span><strong id="ratingStat">4.2 ★</strong></div>
-      <div class="stat"><span>Date</span><strong id="dayStat">Jul 1</strong></div>
     </section>
 
-    <main id="screen" class="screen" tabindex="-1"></main>
+    <section id="newStoreScreen" class="screen screen--setup" aria-label="New store setup">
+      <div class="setup-card">
+        <button class="icon-btn setup-back" id="setupBackBtn" aria-label="Back">←</button>
+        <div class="eyebrow">YOUR FIRST STORE</div>
+        <h2>Name your toy store</h2>
+        <p>Keep it simple. Everything else can grow from here.</p>
+        <label class="field-label" for="storeNameInput">STORE NAME</label>
+        <input id="storeNameInput" class="text-input" maxlength="28" value="Toy Box" autocomplete="off" />
+        <button class="btn btn--hero" id="createStoreBtn">OPEN MY STORE</button>
+      </div>
+    </section>
 
-    <nav class="bottom-nav" aria-label="Primary">
-      <button data-tab="store" class="nav-btn active"><span>🏪</span><b>Store</b></button>
-      <button data-tab="market" class="nav-btn"><span>🛒</span><b>Market</b></button>
-      <button data-tab="products" class="nav-btn"><span>📦</span><b>Products</b></button>
-      <button data-tab="rivals" class="nav-btn"><span>⚔️</span><b>War Room</b></button>
-      <button data-tab="empire" class="nav-btn"><span>👑</span><b>Empire</b></button>
-    </nav>
+    <section id="gameScreen" class="screen screen--game" aria-label="Toy Store Tycoon game">
+      <header class="topbar">
+        <div class="topbar-store">
+          <div class="topbar-kicker" id="dateLabel">MON • 3 FEB</div>
+          <div class="topbar-name" id="storeNameLabel">Toy Box</div>
+        </div>
+        <div class="topbar-cash">
+          <span>CASH</span>
+          <strong id="cashLabel">$25,000</strong>
+        </div>
+      </header>
+
+      <main id="viewRoot" class="view-root"></main>
+
+      <nav class="bottom-nav" aria-label="Primary navigation">
+        <button class="nav-item is-active" data-view="store"><span>🏪</span><b>Store</b></button>
+        <button class="nav-item" data-view="order"><span>📦</span><b>Order</b></button>
+        <button class="nav-item" data-view="inventory"><span>🧾</span><b>Inventory</b></button>
+        <button class="nav-item" data-view="market"><span>📈</span><b>Market</b></button>
+        <button class="nav-item" data-view="business"><span>💰</span><b>Business</b></button>
+      </nav>
+    </section>
   </div>
 
-  <div id="sheetBackdrop" class="sheet-backdrop hidden"></div>
-  <section id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="Details">
-    <div class="sheet-handle"></div>
-    <div id="sheetContent"></div>
-  </section>
+  <div id="modalLayer" class="modal-layer" aria-live="polite"></div>
+  <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
 
-  <div id="toast" class="toast hidden" role="status"></div>
-  <div id="eventSplash" class="event-splash hidden" role="dialog" aria-modal="true"></div>
-
-  <script src="game.js"></script>
-  <script src="v06.js"></script>
-  <script src="v07.js"></script>
-  <script src="v08.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
