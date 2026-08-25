@@ -30,12 +30,12 @@ window.TST_DATA = (() => {
 
   const products = [
     // Titan Toys — Raiders of the Galaxy
-    p('rotg-draxon','raiders','Draxon — Galactic Champion','Action Figures',15,29.99,1.15,1,{image:'assets/draxon-package.jpeg',recommendedQty:8,releaseStructure:'Wave 1'}),
-    p('rotg-skullfang','raiders','Skullfang — Tyrant of the Dead Moon','Action Figures',15,29.99,1.02,1,{recommendedQty:6,releaseStructure:'Wave 1'}),
-    p('rotg-ironclaw','raiders','Ironclaw — Beast of Vargos','Action Figures',15,29.99,.82,1,{recommendedQty:4,releaseStructure:'Wave 1'}),
-    p('rotg-nyra','raiders','Nyra — Guardian of the Star Crystal','Action Figures',15,29.99,1.0,1,{recommendedQty:6,releaseStructure:'Wave 1'}),
-    p('rotg-astralon','raiders','Castle Astralon','Playsets',62,119.99,.46,7,{evergreen:false,releaseStructure:'Flagship Playset'}),
-    p('rotg-ravager','raiders','Ravager Battle Beast','Vehicles',28,54.99,.62,3,{releaseStructure:'Vehicle'}),
+    p('rotg-draxon','raiders','Draxon — Galactic Champion','Action Figures',15,29.99,1.15,1,{image:'assets/products/raiders-of-the-galaxy/draxon-package.png',recommendedQty:8,releaseStructure:'Wave 1'}),
+    p('rotg-skullfang','raiders','Skullfang — Tyrant of the Dead Moon','Action Figures',15,29.99,1.02,1,{image:'assets/products/raiders-of-the-galaxy/skullfang-package.png',recommendedQty:6,releaseStructure:'Wave 1'}),
+    p('rotg-ironclaw','raiders','Ironclaw — Beast of Vargos','Action Figures',15,29.99,.82,1,{image:'assets/products/raiders-of-the-galaxy/ironclaw-package.png',recommendedQty:4,releaseStructure:'Wave 1'}),
+    p('rotg-nyra','raiders','Nyra — Guardian of the Star Crystal','Action Figures',15,29.99,1.0,1,{image:'assets/products/raiders-of-the-galaxy/nyra-package.png',recommendedQty:6,releaseStructure:'Wave 1'}),
+    p('rotg-astralon','raiders','Castle Astralon','Playsets',62,119.99,.46,7,{image:'assets/products/raiders-of-the-galaxy/castle-astralon-package.png',evergreen:false,releaseStructure:'Flagship Playset'}),
+    p('rotg-ravager','raiders','Ravager Battle Beast','Vehicles',28,54.99,.62,3,{image:'assets/products/raiders-of-the-galaxy/ravager-battle-beast-package.png',releaseStructure:'Vehicle'}),
 
     // Vector Toys — Cyber Warriors
     p('cw-vanguard','cyber','Vanguard Prime — Commander of the Guardians','Action Figures',39,79.99,.92,2,{recommendedQty:4,releaseStructure:'Wave 1'}),

@@ -1,4 +1,4 @@
-# Toy Store Tycoon v0.1 — Retail Tycoon Foundation
+# Toy Store Tycoon v0.1.1 — Raiders Asset Pass
 
 A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon project.
 
@@ -47,3 +47,8 @@ Upload the contents of this folder to a GitHub repository and enable GitHub Page
 The game is currently designed around **one package image per product**. The recommended master canvas is 1600×1600 with the complete retail package visible and uncropped. Until a product receives final art, the game displays a branded placeholder package.
 
 The supplied Draxon mockup is at `assets/draxon-package.jpeg`.
+
+
+## v0.1.1 Raiders asset pass
+
+Added the six supplied Raiders of the Galaxy retail-package artworks as transparent PNG game assets and wired them into the live product catalogue: Draxon, Skullfang, Ironclaw, Nyra, Castle Astralon and Ravager Battle Beast. The original 1024×1024 source resolution is preserved.
