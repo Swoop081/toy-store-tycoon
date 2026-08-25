@@ -6,7 +6,11 @@
   <meta name="theme-color" content="#101528" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Toy Store Tycoon" />
   <title>Toy Store Tycoon</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -14,14 +18,14 @@
     <section id="mainMenu" class="screen screen--menu is-active" aria-label="Main menu">
       <div class="menu-backdrop"></div>
       <div class="menu-content">
-        <div class="eyebrow">BUILD • STOCK • SELL • GROW</div>
-        <h1 class="game-logo">TOY STORE<br><span>TYCOON</span></h1>
+        <img class="game-logo-image" src="assets/branding/toy-store-tycoon-logo.png" alt="Toy Store Tycoon" />
+        <div class="eyebrow menu-eyebrow">BUILD • STOCK • SELL • GROW</div>
         <p class="menu-copy">Turn a small neighbourhood toy shop into the store everyone talks about.</p>
         <div class="menu-actions">
           <button class="btn btn--hero" id="newStoreBtn">NEW STORE</button>
           <button class="btn btn--secondary" id="continueBtn">CONTINUE</button>
         </div>
-        <div class="menu-foot">v0.1.2 • Four-Line Product Art Pass</div>
+        <div class="menu-foot">v0.1.4 • Branding Pass</div>
       </div>
     </section>
 

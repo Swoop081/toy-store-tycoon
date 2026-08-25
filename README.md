@@ -1,4 +1,4 @@
-# Toy Store Tycoon v0.1.2 — Four-Line Product Art Pass
+# Toy Store Tycoon v0.1.4 — Branding Pass
 
 A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon project.
 
@@ -25,9 +25,16 @@ A mobile-first, static GitHub Pages prototype for the fresh Toy Store Tycoon pro
 - Per-save product display-name editor
 - Per-save local artwork replacement using IndexedDB
 
+## Branding integration
+
+- Adds the supplied **Toy Store Tycoon** logo to the launch/main-menu screen as a transparent PNG.
+- Adds GitHub Pages/PWA app-icon support using the supplied square logo composition.
+- Includes 192×192 and 512×512 web-app icons, a 180×180 Apple touch icon, a 32×32 favicon, and `manifest.webmanifest`.
+- The launch-page logo uses a transparent background; the app icons preserve the supplied clean white square composition for reliable home-screen presentation.
+
 ## Product-art integration
 
-The first four complete product families now use supplied retail-package artwork instead of placeholders. All 21 images are stored as transparent PNGs and wired directly into the live catalogue:
+Five complete product families now use supplied retail-package artwork instead of placeholders. All **33 product images** are stored as transparent PNGs and wired directly into the live catalogue.
 
 ### Raiders of the Galaxy — 6
 - Draxon — Galactic Champion
@@ -58,13 +65,29 @@ The first four complete product families now use supplied retail-package artwork
 - Underground Hideout
 - Street Slammer
 
-The source images were supplied at 1024×1024. Their native resolution is preserved; the white studio background has been removed while retaining the complete packaging and soft edge antialiasing.
+### Velocity Racers — 12
+- Blaze GT
+- Night Fang
+- Turbo Wasp
+- Road Titan
+- Neon Phantom
+- Inferno Van
+- Aero Bullet
+- Gravehowl X
+- Blaze GT — Velocity Gold Edition
+- Loop Strike
+- Crash Canyon
+- Velocity City Garage
+
+The latest supplied evergreen Velocity City Garage package is used; the earlier holiday-decorated version is intentionally excluded.
+
+The supplied artwork is preserved at its native 1024×1024 resolution. White studio backgrounds are removed while preserving the complete retail packaging and soft edge antialiasing.
 
 ## Art pipeline
 
 The game uses **one packaging image per product** for the first-build art pass. Product art is displayed with `object-fit: contain`, so package proportions remain intact. Manufacturer names/logos and age markings are not required in the artwork; product metadata belongs to the game UI/data layer.
 
-Remaining products continue to use branded placeholders until their final package images are supplied.
+Remaining product families continue to use branded placeholders until their final packaging images are supplied.
 
 ## Run locally
 
